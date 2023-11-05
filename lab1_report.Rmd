@@ -109,7 +109,41 @@ The global maximum is achieved at about x = -0.2952452
 
 # Question 2
 
-```{r}
+## Subquestion a
 
+```{r}
+# Variance estimation function
+myvar <- function(x){
+  output <- (sum(x^2) - sum(x)^2 / length(x)) / (length(x)-1)
+  
+  #cat("Variance estimate:", output, "\n")
+  return(output)
+}
 ```
+
+## Subquestion b
+
+```{r}
+x <- rnorm(n=10^4, mean=10^8, sd=1)
+```
+
+## Subquestion c
+
+```{r}
+# The difference for each subset
+
+difference <- c()
+myvar_vector <- c()
+var_vector <- c()
+for (i in 1:10^4){
+  myvar_vector <- c(myvar_vector, myvar(x[1:i]))
+  var_vector <- c(var_vector, var(x[1:i]))
+  #difference <- c(difference, myvar(x[1:i])-var(x[1:i]))
+}
+difference <- myvar_vector - var_vector
+
+plot(difference, type="p")
+plot(myvar_vector, var_vector)
+```
+
 
