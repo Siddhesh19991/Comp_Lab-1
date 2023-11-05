@@ -1,0 +1,115 @@
+---
+title: "Lab 1 report"
+author: "Simon Jorstedt & Siddhesh Sreedar"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+
+# Question 1
+
+```{r}
+# Problem setup
+
+## Data parameter values
+theta <- seq(-4, 4, 0.01)
+x <- c(-2.8, 3.4, 1.2, -.3, -2.6)
+
+# Log-likelihood function
+loglike <- function(theta){-5*log(pi)-sum(log(1+(x-theta)^2))}
+
+# Log-likelihood first derivative function
+loglike_derivative <- function(theta){sum(2*(x-theta)/(1+(x-theta)^2))}
+```
+
+## Subquestion a
+> Plot the log likelihood function for the given data in the range from -4 to 4. Plot the derivative in the same range and check visually how often the derivative is equal to 0.
+
+```{r}
+# Log likelihood plot
+y_a1 <- c()
+for (theta_i in theta){
+  y_a1 <- c(y_a1, loglike(theta_i))
+}
+
+plot(theta,
+     y_a1,
+     type="l",
+     main = "Log likelihood",
+     xlab = "theta",
+     ylab = "value")
+
+# Log likelihood derivative plot
+y_a2 <- c()
+for (theta_i in theta){
+  y_a2 <- c(y_a2, loglike_derivative(theta_i))
+}
+
+plot(theta,
+     y_a2,
+     type="l",
+     main = "Log likelihood derivative",
+     xlab = "theta",
+     ylab = "value")
+abline(b=0, a=0)
+```
+
+The derivative crosses y=0 three times.
+
+## Subquestion b
+
+```{r}
+# Bisection function
+
+bisect_estimate <- function(a, b, epsilon = 0.000001){
+  # a is the left start guess
+  # b is the right start guess
+  # epsilon is the desired convergence error
+  
+  y1 <- loglike_derivative(a)
+  y2<- loglike_derivative(b)
+  stopifnot("Invalid boundaries `a` and `b`" = y1 * y2 < 0)
+  
+  x_t <- c()
+  # In the beginning, x_t is either empty or only has one value.
+  # When x_t has at least two values, evaluate the last two values with
+  # respect to the convergence error.
+  while(length(x_t) < 2 || abs(tail(x_t,1)-tail(x_t,2)[1]) > epsilon){
+    y1 <- loglike_derivative(a) #sum(2*(x-a)/(1+(x-a)^2))
+    y2<- loglike_derivative(b) #sum(2*(x-b)/(1+(x-b)^2))
+    
+    # Calculate new boundary
+    x_t <- c(x_t,(a + b)/2)
+    
+    if(loglike_derivative(a)*loglike_derivative(tail(x_t,1)) <= 0){
+      b <- tail(x_t,1)
+    }
+    if(loglike_derivative(b)*loglike_derivative(tail(x_t,1)) < 0){
+      a <- tail(x_t,1)
+    }
+  }
+  cat("Estimate of x_value: ", tail(x_t, 1))
+}
+```
+
+## Subquestion c
+
+```{r}
+
+```
+
+The global maximum is achieved at about x = -0.2952452
+
+## Subquestion d
+
+```{r}
+
+```
+
+
+# Question 2
+
+```{r}
+
+```
+
