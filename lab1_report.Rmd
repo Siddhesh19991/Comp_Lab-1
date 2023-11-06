@@ -104,6 +104,78 @@ The global maximum is achieved at about x = -0.2952452
 
 ```{r}
 
+values<-seq(-4,4,0.1)
+
+first_der_values<-data.frame("value"= NA,"derivative" =NA)
+
+for (i in 1:length(values)){
+  first_der_values[i,1]<-values[i]
+  first_der_values[i,2]<-loglike_derivative(values[i])
+  
+}
+
+pos<-subset(first_der_values,derivative>0)
+neg<-subset(first_der_values,derivative<0)
+
+final<-c()
+
+len<-nrow(pos)
+len2<-nrow(neg)
+
+for (i in 1:len){
+  for( j in 1:len2){
+    
+    if(pos[i,1]<neg[j,1]){
+      a<-pos[i,1]
+      b<-neg[j,1]
+    }else{
+      b<-pos[i,1]
+      a<-neg[j,1]
+    }
+    x_i <- c()
+    
+    while(length(x_i) < 2 || abs(tail(x_i,1)-tail(x_i,2)[1])>0.00000001){
+      y1 <- loglike_derivative(a) #sum(2*(x-a)/(1+(x-a)^2))
+      y2<- loglike_derivative(b) #sum(2*(x-b)/(1+(x-b)^2))
+      
+      if(length(x_i) == 0 && y1 * y2 >= 0){print("Break");break}
+      
+      x_i <- c(x_i,(a + b)/2)
+      
+      if(loglike_derivative(a)*loglike_derivative(tail(x_i,1)) <= 0){
+        b <- tail(x_i,1)
+      }
+      if(loglike_derivative(b)*loglike_derivative(tail(x_i,1)) < 0){
+        a <- tail(x_i,1)
+      }
+    }
+    final<-c(final,(tail(x_i, 1)+tail(x_i, 2)[1])/2)
+  }
+}
+
+plot(theta, y_a1, type="l")
+abline(v=final)
+
+
+plot(theta, y_a2, type="l")
+abline(b=0, a=0)
+abline(v=final)
+
+
+final2<-as.data.frame(final)
+
+
+#-1.6017752,-0.2952455,-2.0821239
+
+y_a11 <- c()
+optim_val<-c(-1.6017752,-0.2952455,-2.0821239)
+for (theta_i in optim_val){
+  y_a11 <- c(y_a11, -5*log(pi)-sum(log(1+(x-theta_i)**2)))
+}
+#[1] -13.73572 -13.40942 -13.70770
+
+#So the highest value is when theta is -0.2952455
+
 ```
 
 
