@@ -204,7 +204,7 @@ x <- rnorm(n=10^4, mean=10^8, sd=1)
 ```{r}
 # The difference for each subset
 
-difference <- c()
+
 myvar_vector <- c()
 var_vector <- c()
 for (i in 1:10^4){
@@ -219,3 +219,42 @@ plot(myvar_vector, var_vector)
 ```
 
 
+## Subquestion d
+
+```{r}
+myvar_improved_1<-function(x){
+   m <- mean(x)
+  sum((x-m)**2)/(length(x)-1)
+}
+
+myvar_improved_2<-function(x){
+  var(x)*(length(x)-1)/length(x)
+  
+}
+
+#checking difference with the first improvement
+myvar_improved_1_vector <- c()
+var_vector <- c()
+for (i in 1:10^4){
+  myvar_improved_1_vector <- c(myvar_improved_1_vector, myvar_improved_1(x[1:i]))
+  var_vector <- c(var_vector, var(x[1:i]))
+}
+
+difference1 <- myvar_improved_1_vector - var_vector
+
+
+#checking difference with the seconf improvement
+myvar_improved_2_vector <- c()
+var_vector <- c()
+for (i in 1:10^4){
+  myvar_improved_2_vector <- c(myvar_improved_2_vector, myvar_improved_2(x[1:i]))
+  var_vector <- c(var_vector, var(x[1:i]))
+}
+
+difference2 <- myvar_improved_2_vector - var_vector
+
+
+
+#myvar_improved_1 gives better results and close to the var() function in R. 
+
+```
