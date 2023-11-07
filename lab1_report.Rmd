@@ -121,16 +121,19 @@ The global maximum is thus achieved at about x = -0.2952452.
 
 ```{r}
 
-values<-seq(-4,4,0.1)
+values<-seq(-4,4,0.1) #The range of theta values
 
-first_der_values<-data.frame("value"= NA,"derivative" =NA)
+first_der_values<-data.frame("value"= NA,"derivative" =NA) #creating an empty dataframe to store the derivative                                                              #values             
 
+#We now store the theta values and its corresponding derivative into the dataframe
+> 
 for (i in 1:length(values)){
   first_der_values[i,1]<-values[i]
   first_der_values[i,2]<-loglike_derivative(values[i])
   
 }
 
+#separating the positive and negtaive derivative value into 
 pos<-subset(first_der_values,derivative>0)
 neg<-subset(first_der_values,derivative<0)
 
@@ -139,6 +142,9 @@ final<-c()
 len<-nrow(pos)
 len2<-nrow(neg)
 
+
+
+#Using a double for-loop to go through all the values and combinations of theta. 
 for (i in 1:len){
   for( j in 1:len2){
     
@@ -170,20 +176,20 @@ for (i in 1:len){
   }
 }
 
-plot(theta, y_a1, type="l")
-abline(v=final)
+#plot(theta, y_a1, type="l")
+#abline(v=final)
 
 
-plot(theta, y_a2, type="l")
-abline(b=0, a=0)
-abline(v=final)
+#plot(theta, y_a2, type="l")
+#abline(b=0, a=0)
+#abline(v=final)
 
 
+#We get all the optimal values:
 final2<-as.data.frame(final)
-
-
 #-1.6017752,-0.2952455,-2.0821239
 
+#Now we compare these values with the function to see which gives the highest value
 y_a11 <- c()
 optim_val<-c(-1.6017752,-0.2952455,-2.0821239)
 for (theta_i in optim_val){
@@ -194,6 +200,7 @@ for (theta_i in optim_val){
 #So the highest value is when theta is -0.2952455
 
 ```
+
 
 
 # Question 2
