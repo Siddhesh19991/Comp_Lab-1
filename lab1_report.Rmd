@@ -5,8 +5,9 @@ date: "`r Sys.Date()`"
 output: pdf_document
 ---
 
-
 # Question 1
+
+We will begin by predefining our given data, an appropriate interval of $\theta$ values, and two functions for the log likelihood and the derivative of the log likelihood (or the score) of a Cauchy distribution as instructed.
 
 ```{r}
 # Problem setup
@@ -22,8 +23,10 @@ loglike <- function(theta){-5*log(pi)-sum(log(1+(x-theta)^2))}
 loglike_derivative <- function(theta){sum(2*(x-theta)/(1+(x-theta)^2))}
 ```
 
-## Subquestion a
+## Subquestion 1.a
 > Plot the log likelihood function for the given data in the range from -4 to 4. Plot the derivative in the same range and check visually how often the derivative is equal to 0.
+
+In the chunk below we calculate and plot first the log likelihood values, and then the score for the $\theta$ interval $[-4, 4]$.
 
 ```{r}
 # Log likelihood plot
@@ -35,9 +38,10 @@ for (theta_i in theta){
 plot(theta,
      y_a1,
      type="l",
-     main = "Log likelihood",
+     main = "Fig 1. Log likelihood",
      xlab = "theta",
      ylab = "value")
+
 
 # Log likelihood derivative plot
 y_a2 <- c()
@@ -48,15 +52,16 @@ for (theta_i in theta){
 plot(theta,
      y_a2,
      type="l",
-     main = "Log likelihood derivative",
+     main = "Fig 2. Log likelihood derivative",
      xlab = "theta",
      ylab = "value")
 abline(b=0, a=0)
 ```
 
-The derivative crosses y=0 three times.
+Inspecting the derivative plot, we see that the curve appears to cross $y=0$ three times within the interval.
 
-## Subquestion b
+## Subquestion 1.b
+We have chosen the Bisection method, and in the Chunk below we implement a function that performs the Bisection method given left and right starting boundaries.
 
 ```{r}
 # Bisection function
@@ -68,7 +73,7 @@ bisect_estimate <- function(a, b, epsilon = 0.000001){
   
   y1 <- loglike_derivative(a)
   y2<- loglike_derivative(b)
-  stopifnot("Invalid boundaries `a` and `b`" = y1 * y2 < 0)
+  #stopifnot("Invalid boundaries `a` and `b`" = y1 * y2 < 0)
   
   x_t <- c()
   # In the beginning, x_t is either empty or only has one value.
@@ -88,19 +93,31 @@ bisect_estimate <- function(a, b, epsilon = 0.000001){
       a <- tail(x_t,1)
     }
   }
-  cat("Estimate of x_value: ", tail(x_t, 1))
+  cat("Estimate of x_value: ", tail(x_t, 1), "\n")
+  return(tail(x_t, 1))
 }
 ```
 
-## Subquestion c
+## Subquestion 1.c
+The bisection method requires two initial boundaries. It is also required that the product of the score at these boundaries is negative. The point of this is to ensure that one of the boundaries is to the left of a maximum, and that one is to the right.
+
+With this in mind, we carefully examine Figure 1 and 2, and determine that starting values $-2.5$ and $-2$ for the local maximum, and $-0.5$ and $0$ for the global maximum are appropriate.
+
+There are many possible starting intervals that do not result in a local maximum, for example $[1,4]$, and $[-4, -3]$. This is because they do not fulfil the requirement that the interval must contain a local maximum. Indeed the Bisection method does not even find the local maximum within the intervals $[1, 4]$ and $[-4, -3]$, because the method fundamentally relies on the the signs of the interval boundaries to refine the interval.
 
 ```{r}
+# Local maximum
+m1 <- bisect_estimate(-2.5, -2)
+cat("loglike value: ", loglike(m1), "\n\n")
 
+# Global maximum
+m2 <- bisect_estimate(-0.5, 0)
+cat("loglike value: ", loglike(m2), "\n")
 ```
 
-The global maximum is achieved at about x = -0.2952452
+The global maximum is thus achieved at about x = -0.2952452.
 
-## Subquestion d
+## Subquestion 1.d
 
 ```{r}
 
@@ -181,7 +198,7 @@ for (theta_i in optim_val){
 
 # Question 2
 
-## Subquestion a
+## Subquestion 2.a
 
 ```{r}
 # Variance estimation function
@@ -193,13 +210,13 @@ myvar <- function(x){
 }
 ```
 
-## Subquestion b
+## Subquestion 2.b
 
 ```{r}
 x <- rnorm(n=10^4, mean=10^8, sd=1)
 ```
 
-## Subquestion c
+## Subquestion 2.c
 
 ```{r}
 # The difference for each subset
@@ -219,7 +236,7 @@ plot(myvar_vector, var_vector)
 ```
 
 
-## Subquestion d
+## Subquestion 2.d
 
 ```{r}
 myvar_improved_1<-function(x){
