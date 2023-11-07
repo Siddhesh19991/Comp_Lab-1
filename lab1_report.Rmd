@@ -24,6 +24,7 @@ loglike_derivative <- function(theta){sum(2*(x-theta)/(1+(x-theta)^2))}
 ```
 
 ## Subquestion 1.a
+
 > Plot the log likelihood function for the given data in the range from -4 to 4. Plot the derivative in the same range and check visually how often the derivative is equal to 0.
 
 In the chunk below we calculate and plot first the log likelihood values, and then the score for the $\theta$ interval $[-4, 4]$.
@@ -61,6 +62,7 @@ abline(b=0, a=0)
 Inspecting the derivative plot, we see that the curve appears to cross $y=0$ three times within the interval.
 
 ## Subquestion 1.b
+
 We have chosen the Bisection method, and in the Chunk below we implement a function that performs the Bisection method given left and right starting boundaries.
 
 ```{r}
@@ -99,6 +101,7 @@ bisect_estimate <- function(a, b, epsilon = 0.000001){
 ```
 
 ## Subquestion 1.c
+
 The bisection method requires two initial boundaries. It is also required that the product of the score at these boundaries is negative. The point of this is to ensure that one of the boundaries is to the left of a maximum, and that one is to the right.
 
 With this in mind, we carefully examine Figure 1 and 2, and determine that starting values $-2.5$ and $-2$ for the local maximum, and $-0.5$ and $0$ for the global maximum are appropriate.
@@ -201,8 +204,6 @@ for (theta_i in optim_val){
 
 ```
 
-
-
 # Question 2
 
 ## Subquestion 2.a
@@ -242,6 +243,12 @@ plot(difference, type="p")
 plot(myvar_vector, var_vector)
 ```
 
+As we can see from the plot, if the myvar() and var() functions outputted the same values, then we would have see
+all the points at 0 on the horizontal axis but it is not the case. The difference range between -4 to +4 and this could be due to rounding errors that R produces. 
+
+Since the vector of theta values are very small numbers, the calculation with the var() function may handle these values better than the myvar function.
+
+
 
 ## Subquestion 2.d
 
@@ -267,7 +274,7 @@ for (i in 1:10^4){
 difference1 <- myvar_improved_1_vector - var_vector
 
 
-#checking difference with the seconf improvement
+#checking difference with the second improvement
 myvar_improved_2_vector <- c()
 var_vector <- c()
 for (i in 1:10^4){
@@ -279,6 +286,6 @@ difference2 <- myvar_improved_2_vector - var_vector
 
 
 
-#myvar_improved_1 gives better results and close to the var() function in R. 
+#myvar_improved_1 gives better results and the difference to the var() function in R is much smaller. 
 
 ```
