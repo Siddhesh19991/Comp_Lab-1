@@ -19,7 +19,9 @@ $$H_g = \begin{bmatrix}
 
 ```{r}
 # Problem setup
-g <- function(x, y){-x^2 - x^2*y^2 - 2*x*y + 2*x + 2}
+g <- function(x){-x[1]^2 - x[1]^2*x[2]^2 - 2*x[1]*x[2] + 2*x[1] + 2}
+g_gradient <- function(x){c(-2*x[1] - 2*x[2]^2*x[1] - 2*x[2]+2, -2*x[1]^2*x[2] -2*x[1])}
+g_Hessian <- function(x){matrix(c(-2-2*x[2]^2, -4*x[1]*x[2], -4*x[1]*x[2]-2, -2*x[1]^2), nrow=2)} # by col by default
 ```
 
 ```{r}
@@ -32,7 +34,7 @@ z_values <- matrix(0, nrow=length(x_values), ncol=length(y_values), dimnames = l
 
 for (i in 1:length(x_values)){
   for (j in 1:length(y_values)){
-    z_values[i, j] <- g(x_values[i], y_values[j])
+    z_values[i, j] <- g(c(x_values[i], y_values[j]))
     #cat("New. x: ", x_i, " y:", y_i, " and value:", g(x_i, y_i), "\n")
   }
 }
@@ -41,12 +43,54 @@ for (i in 1:length(x_values)){
 contour(x=x_values, y=y_values, z = z_values)
 
 persp(x=x_values, y=y_values, z = z_values)
+
+# library(plotly)
+# 
+# plot_ly(type = "scatter3d", mode = "markers",
+#         x = x_values,
+#         y = y_values,
+#         z = z_values)
 ```
 
 
 
 ```{r}
 # Implement Newton method
+Newton_multi <- function(x_start, func, grad, Hess, epsilon = 0.1){
+  # Check input
+  
+  # Run Newton method
+  estimates <- list(x_start)
+  stop_condition <- FALSE
+  #cat(length(estimates) < 2, "\n")
+  #cat(stop_condition, "\n")
+  
+  a <- length(estimates) < 2
+  #b <- stop_condition == FALSE
+  stop_condition <- FALSE
+  while ((length(estimates) < 2) || stop_condition == FALSE){
+    #abs(func(tail(estimates, 1)[[1]]) - func(tail(estimates,2)[[1]])) >= epsilon && n_times < 10){
+    prev_x <- tail(estimates, 1)[[1]]
+    cat(sprintf("%f\n",prev_x) )   
+    new_estim <- prev_x - solve(Hess(prev_x)) %*% grad(prev_x)
+    cat("New estim:", new_estim, "\n")
+    estimates <- append(estimates, new_estim)
+    
+    # Calculate stopcond
+    first_vec <- tail(estimates, 1)[[1]]
+    secon_vec <- tail(estimates, 2)[[1]]
+    #stop_condition <- sqrt((first_vec[1]-secon_vec[1])^2 + (first_vec[2]-secon_vec[2])^2) < epsilon
+    cat("fir", first_vec, "\n")
+    cat("sec", secon_vec, "\n")
+    #stop_condition <- dist(t(data.frame(tail(estimates, 1)[[1]], tail(estimates, 2)[[1]])))[1] < epsilon
+    cat("sc:", stop_condition, "\n")
+    #stop_condition <- (t(tail(estimates, 1)[[1]] - tail(estimates, 2)[[1]])  %*% (tail(estimates, 1)[[1]] - tail(estimates, 2)[[1]])) < epsilon
+  }
+  
+  return(tail(estimates, 1)[[1]])
+}
+
+Newton_multi(c(2,0), func=g, grad=g_gradient, Hess=g_Hessian)
 ```
 
 
