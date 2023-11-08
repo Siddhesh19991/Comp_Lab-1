@@ -25,6 +25,22 @@ g <- function(x, y){-x^2 - x^2*y^2 - 2*x*y + 2*x + 2}
 ```{r}
 # Contour plot
 #contour()
+
+x_values <- seq(-3, 3, 0.1)
+y_values <- seq(-3, 3, 0.1)
+z_values <- matrix(0, nrow=length(x_values), ncol=length(y_values), dimnames = list(x_values, y_values))
+
+for (i in 1:length(x_values)){
+  for (j in 1:length(y_values)){
+    z_values[i, j] <- g(x_values[i], y_values[j])
+    #cat("New. x: ", x_i, " y:", y_i, " and value:", g(x_i, y_i), "\n")
+  }
+}
+#z_values
+
+contour(x=x_values, y=y_values, z = z_values)
+
+persp(x=x_values, y=y_values, z = z_values)
 ```
 
 
