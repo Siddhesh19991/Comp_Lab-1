@@ -1,0 +1,39 @@
+---
+title: "Lab 2 report"
+author: "Simon Jorstedt & Siddhesh Sreedar"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+
+# Question 1
+
+The gradient to $g$ is $\nabla g(x,y) = (-2x - 2y^2x-2y+2, -2x^2y-2x)$.
+
+The Hessian matrix is
+
+$$H_g = \begin{bmatrix}
+-2-2y^2 & -4xy-2\\
+-4xy & -2x^2
+\end{bmatrix}$$
+
+```{r}
+# Problem setup
+g <- function(x, y){-x^2 - x^2*y^2 - 2*x*y + 2*x + 2}
+```
+
+```{r}
+# Contour plot
+#contour()
+```
+
+
+
+```{r}
+# Implement Newton method
+```
+
+
+
+# Question 2
+Fit logistic regression
