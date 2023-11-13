@@ -9,18 +9,18 @@ output: pdf_document
 # Question 1
 We consider the function
 
-$$g(x,y) = -x^2-x^2y^2-2xy+2x+2$$.
+$$g(x,y) = -x^2-x^2y^2-2xy+2x+2.$$
 
 The gradient to $g$ is
 
-$$\nabla g(x,y) = (-2x - 2y^2x-2y+2, -2x^2y-2x)$$.
+$$\nabla g(x,y) = (-2x - 2y^2x-2y+2, -2x^2y-2x).$$
 
 The Hessian matrix corresponding to $g$ is
 
 $$H_g = \begin{bmatrix}
 -2-2y^2 & -4xy-2\\
 -4xy-2 & -2x^2
-\end{bmatrix}$$.
+\end{bmatrix}.$$
 
 See the Appendix for the R implementation of these functions. We will now proceed to plot a contour plot of $g$ in the region $x, y \in [-3, 3]$, with the precision of a square with side $0.01$. See Figure 1. We are interested in finding local maximums of $g$. To achieve this, we will implement the Newton method in a code chunk which can be found in the Appendix.
 
@@ -56,7 +56,8 @@ contour(x=x_values,
         z = z_values,
         main = "Fig 1. Contour plot of g(x,y)",
         xlab = "x",
-        ylab = "y")
+        ylab = "y",
+        nlevels = 150)
 
 ```
 
@@ -105,7 +106,9 @@ Newton <- function(x_start, func, grad, Hess, epsilon = 0.00001){
 }
 ```
 
-When the Newton method is run on the starting points $(2, 0), (-1, -2), (0, 1)$ and $(0.5, 1)$, the following results are obtained. 
+When the Newton method is run on the starting points $(2, 0), (-1, -2), (0, 1)$ and $(0.5, 1)$, the following results are obtained. There is convergence to two separate points, $(1, -1)$ and $(0, 1)$. The gradient is zero (vector) at both points. When analysing the respective Hessian matrices for these points, we find that the eigenvalues for the Hessian at $(1, -1)$ can be rounded to $-0.76$ and $-5.24$. Both eigenvalues being negative indicates that the point $(1, -1)$ is a local maximum. This is not true for $(0, 1)$ where the Hessians eigenvalues can be rounded to $0.83$ and $-4.83$, indicating that this point is neither a local maximum or minimum. It is thus likely a saddle point. This is supported by Figure 1, where there appears to be an intersection between two contour curves (both at height 2) at $(0, 1)$.
+
+In this application, we could have used an implementation of the steepest ascent method instead. This would have some advantages over the Newton method, specifically it guarantees that the function $g$ increases in every step of the algorithm. The accompanying disadvantages would likely be a slower convergence, but it is possible that convergence would not be guaranteed. In addition, it introduces a "hyperparameter" which must be specified by the model designer.
 
 ```{r Newton_Runs, echo=F}
 # Point 1
@@ -120,10 +123,6 @@ x3 <- Newton(c(0, 1), func = g, grad = g_gradient, Hess = g_Hessian)
 # Point 4
 x4 <- Newton(c(0.5, -1), func = g, grad = g_gradient, Hess = g_Hessian)
 ```
-
-
-
-
 
 
 # Question 2
