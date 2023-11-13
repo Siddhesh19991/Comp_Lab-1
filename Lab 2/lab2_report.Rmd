@@ -7,54 +7,136 @@ output: pdf_document
 
 
 # Question 1
+We consider the function
 
-The gradient to $g$ is $\nabla g(x,y) = (-2x - 2y^2x-2y+2, -2x^2y-2x)$.
+$$g(x,y) = -x^2-x^2y^2-2xy+2x+2$$.
 
-The Hessian matrix is
+The gradient to $g$ is
+
+$$\nabla g(x,y) = (-2x - 2y^2x-2y+2, -2x^2y-2x)$$.
+
+The Hessian matrix corresponding to $g$ is
 
 $$H_g = \begin{bmatrix}
 -2-2y^2 & -4xy-2\\
 -4xy-2 & -2x^2
-\end{bmatrix}$$
+\end{bmatrix}$$.
 
-```{r}
+See the Appendix for the R implementation of these functions. We will now proceed to plot a contour plot of $g$ in the region $x, y \in [-3, 3]$, with the precision of a square with side $0.01$. See Figure 1. We are interested in finding local maximums of $g$. To achieve this, we will implement the Newton method in a code chunk which can be found in the Appendix.
+
+```{r functions, echo=FALSE}
 # Problem setup
 g <- function(x){-x[1]^2 - x[1]^2*x[2]^2 - 2*x[1]*x[2] + 2*x[1] + 2}
 g_gradient <- function(x){matrix(c(-2*x[1] - 2*x[2]^2*x[1] - 2*x[2]+2, -2*x[1]^2*x[2] -2*x[1]))}
 g_Hessian <- function(x){matrix(c(-2-2*x[2]^2, -4*x[1]*x[2]-2, -4*x[1]*x[2]-2, -2*x[1]^2), nrow=2)} # by col by default
 ```
 
-```{r}
+```{r CountourPlot, echo=F, out.width="60%", fig.align='center'}
 # Contour plot
-#contour()
 
-x_values <- seq(-3, 3, 0.1)
-y_values <- seq(-3, 3, 0.1)
-z_values <- matrix(0, nrow=length(x_values), ncol=length(y_values), dimnames = list(x_values, y_values))
+# Define the contour grid
+x_values <- seq(-3, 3, 0.01)
+y_values <- seq(-3, 3, 0.01)
+z_values <- matrix(0,
+                   nrow=length(x_values),
+                   ncol=length(y_values),
+                   dimnames = list(x_values, y_values))
 
+# Calculate height over the grid
 for (i in 1:length(x_values)){
   for (j in 1:length(y_values)){
     z_values[i, j] <- g(c(x_values[i], y_values[j]))
     #cat("New. x: ", x_i, " y:", y_i, " and value:", g(x_i, y_i), "\n")
   }
 }
-#z_values
 
-contour(x=x_values, y=y_values, z = z_values)
+# Make a contour plot
+contour(x=x_values,
+        y=y_values,
+        z = z_values,
+        main = "Fig 1. Contour plot of g(x,y)",
+        xlab = "x",
+        ylab = "y")
 
-persp(x=x_values, y=y_values, z = z_values)
-
-# library(plotly)
-# 
-# plot_ly(type = "scatter3d", mode = "markers",
-#         x = x_values,
-#         y = y_values,
-#         z = z_values)
 ```
 
 
-```{r}
+```{r NewtonMulti, echo=F}
+library(stringr)
+
+# The Newton method function
+Newton <- function(x_start, func, grad, Hess, epsilon = 0.00001){
+  # Setup
+  estimates <- list(matrix(x_start))
+  stop_condition <- FALSE
+  
+  while ((length(estimates) < 2) || stop_condition == FALSE){
+    # Grab the last/previous x value
+    prev_x <- tail(estimates, 1)[[1]]
+    
+    # Calculate new x value, and add to estimates list
+    new_estim <- prev_x - solve(Hess(prev_x)) %*% grad(prev_x)
+    estimates <- c(estimates, list(new_estim))
+      
+    # Calculate stopcondition
+    first_vec <- tail(estimates, 1)[[1]]
+    secon_vec <- tail(estimates, 2)[[1]]
+    stop_condition <- (t(first_vec - secon_vec)  %*% (first_vec - secon_vec)) < epsilon
+  }
+  # Output
+  cat("---------------------------------------\n")
+  cat("Local extrema found: g(",
+      str_c(round(new_estim, 4), collapse=", "),
+      ") = ",
+      round(func(new_estim), 4), "\n",
+      
+      "Gradient(",
+      str_c(round(new_estim, 4), collapse=", "),
+      ") = (",
+      str_c(round(grad(new_estim), 4), collapse=", "), ")\n",
+      
+      "Hessian(",
+      str_c(round(new_estim, 4), collapse=", "),
+      ") = \n", sep="")
+  
+  print.default(round(Hess(new_estim), 4))
+  
+  return(new_estim)
+}
+```
+
+When the Newton method is run on the starting points $(2, 0), (-1, -2), (0, 1)$ and $(0.5, 1)$, the following results are obtained. 
+
+```{r Newton_Runs, echo=F}
+# Point 1
+x1 <- Newton(c(2, 0), func = g, grad = g_gradient, Hess = g_Hessian)
+
+# Point 2
+x2 <- Newton(c(-1, -2), func = g, grad = g_gradient, Hess = g_Hessian)
+
+# Point 3
+x3 <- Newton(c(0, 1), func = g, grad = g_gradient, Hess = g_Hessian)
+
+# Point 4
+x4 <- Newton(c(0.5, -1), func = g, grad = g_gradient, Hess = g_Hessian)
+```
+
+
+
+
+
+
+# Question 2
+Fit logistic regression
+
+
+# Appendix
+
+
+# Old code
+```{r NewtonMulti_rawcode, eval=F, include=F}
 # Create what is to be done in the Newton Multi function
+# This has now been copied to the Chunk "NewtonMulti"
 
 #Newton_multi(c(2,0), func=g, grad=g_gradient, Hess=g_Hessian)
 x_start <- c(-1,-2)
@@ -94,16 +176,9 @@ while ((length(estimates) < 2) || stop_condition == FALSE){
   stop_condition <- (t(first_vec - secon_vec)  %*% (first_vec - secon_vec)) < epsilon
   }
 ```
-For (2,0), the algorithm converges to roughly (1.000026, -0.9999341).
 
 
-For (-1, -2), the algorithm.
-
-For (0, 1), a singular matrix is achieved.
-
-
-
-```{r}
+```{r first_Newton_Multi_function, eval=F, include=F}
 # Implement Newton method
 Newton_multi <- function(x_start, func, grad, Hess, epsilon = 0.1){
   # Check input
@@ -143,6 +218,3 @@ Newton_multi(c(2,0), func=g, grad=g_gradient, Hess=g_Hessian)
 ```
 
 
-
-# Question 2
-Fit logistic regression
