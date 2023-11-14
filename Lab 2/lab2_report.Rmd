@@ -70,7 +70,7 @@ Newton <- function(x_start, func, grad, Hess, epsilon = 0.00001){
   estimates <- list(matrix(x_start))
   stop_condition <- FALSE
   
-  while ((length(estimates) < 2) || stop_condition == FALSE){
+  while (stop_condition == FALSE){
     # Grab the last/previous x value
     prev_x <- tail(estimates, 1)[[1]]
     
