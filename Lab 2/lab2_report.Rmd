@@ -5,8 +5,8 @@ date: "`r Sys.Date()`"
 output: pdf_document
 ---
 
-
 # Question 1
+
 We consider the function
 
 $$g(x,y) = -x^2-x^2y^2-2xy+2x+2.$$
@@ -60,7 +60,6 @@ contour(x=x_values,
         nlevels = 150)
 
 ```
-
 
 ```{r NewtonMulti, echo=F}
 library(stringr)
@@ -124,10 +123,149 @@ x3 <- Newton(c(0, 1), func = g, grad = g_gradient, Hess = g_Hessian)
 x4 <- Newton(c(0.5, -1), func = g, grad = g_gradient, Hess = g_Hessian)
 ```
 
-
 # Question 2
 
-a) 
+a)  
+The implemented function can be found in the appendix 
+
+```{r, echo = FALSE}
+x <- c(0,0,0,0.1,0.1,0.3,0.3,0.9,0.9,0.9)
+y<- c(0,0,1,0,1,1,1,0,1,1)
+
+
+dose <- function(beta0,beta1,third){
+  
+  x <- c(0,0,0,0.1,0.1,0.3,0.3,0.9,0.9,0.9)
+  y<- c(0,0,1,0,1,1,1,0,1,1)
+  
+  value<-list()
+  
+  b0<-beta0
+  b1<-beta1
+  alpha <- third
+  orginal_x <- as.matrix(c(1,0))
+  grad_count<-0
+  main_count<-0
+  
+  derivative<- function(b0,b1){
+    for (i in 1:length(x)){
+      value[[i]]<-(y[i] - 1/(1+exp(-b0-b1*x[i])))*as.matrix(c(1,x[i]))
+    }
+    
+    abc<-as.matrix(c(0,0))
+    for (i in 1:length(x)){
+      abc <- abc+ value[[i]]
+    }
+    grad_count<<-grad_count +1
+    return(abc)
+  }
+  
+  
+  next_x<- function(b0,b1){
+    as.matrix(c(b0,b1)) + alpha * derivative(b0,b1)
+  }
+  
+  
+  main_function<- function(b0,b1){
+    comp<-c()
+    for (i in 1:length(x)){
+      comp[i]<-y[i]*log(solve(1+exp(-b0-b1*x[i]))) + (1-y[i])*log(1-solve((1+ exp(-b0-b1*x[i]))))
+    }
+    comp<-sum(comp)
+    
+    main_count<<- main_count+1
+    return(comp)
+  }
+  
+  i<-1
+  
+  store<-list(as.vector(orginal_x))
+  
+  #####
+  i <- i + 1
+  a<-next_x(orginal_x[1],orginal_x[2]) 
+  while(main_function(a[1],a[2])<main_function(orginal_x[1],orginal_x[2])){
+    alpha<-alpha/2
+    a<-next_x(orginal_x[1],orginal_x[2])
+  }
+  
+  orginal_x<-a
+  store[[i]]<-as.vector(orginal_x)
+  alpha<-1
+  
+  #####
+  while(any(abs(store[[length(store)]]-store[[length(store)-1]])>0.00001)){
+    
+    alpha<-1
+    i <- i + 1
+    
+    a<-next_x(orginal_x[1],orginal_x[2])
+    
+    while(main_function(a[1],a[2])<main_function(orginal_x[1],orginal_x[2])){
+      alpha<-alpha/2
+      
+      a<-next_x(orginal_x[1],orginal_x[2])
+    }
+    
+    
+    orginal_x<-a
+    store[[i]]<-as.vector(orginal_x)
+  }
+  
+  #the values of b0 and b1 + the number of time the gradient and log (main) function has been called
+  list("values" = store[[length(store)]],"gradient function count" =  grad_count,"likelihood function count" = main_count) 
+}
+
+```
+
+b)  
+
+The two variants are done by altering the alpha value
+
+```{r, echo= FALSE}
+
+dose(-0.2,1,1)
+dose(-0.2,1,5)
+
+```
+
+As we increase the alpha value, the estimated values are around the same but the function and gradient count is slightly different.
+
+c)  
+
+```{r, echo = FALSE}
+opt<- function(a){
+  comp<-c()
+  for (i in 1:10){
+    comp[i]<-y[i]*log(solve(1+exp(-a[1]-a[2]*x[i]))) + (1-y[i])*log(1-solve((1+ exp(-a[1]-a[2]*x[i]))))
+  }
+  comp<- - sum(comp)
+}
+
+optim(c(-0.2,1),fn = opt , method = "BFGS")
+
+optim(c(-0.2,1),fn = opt , method = "Nelder-Mead", hessian = FALSE)
+
+
+```
+
+Yes, the results for both are almost the same with some changes in the last few decimal places and both are almost same to the value found in b).\
+The function and gradient count is drastically lower when compared to b).\
+Also the gradient count for Nelder-Mead is NA since no computation of derivatives is necessary.
+
+d)  
+
+```{r, echo = FALSE}
+glm(y~x,family = "binomial")
+
+```
+
+Based on the output from the "glm" function, we can say that the output compared to b) and c) are almost the same with some changes in the last few decimal places.
+
+# Appendix
+
+Question-2
+a)
 ```{r}
 x <- c(0,0,0,0.1,0.1,0.3,0.3,0.9,0.9,0.9)
 y<- c(0,0,1,0,1,1,1,0,1,1)
@@ -219,17 +357,15 @@ dose <- function(beta0,beta1,third){
 ```
 
 b)
-
-The two variants are done by altering the alpha value
 ```{r}
 
 dose(-0.2,1,1)
 dose(-0.2,1,5)
 
 ```
-As we increase the alpha value, the estimated values are around the same but the function and gradient count is slightly different. 
 
-c)
+c)  
+
 ```{r}
 opt<- function(a){
   comp<-c()
@@ -245,102 +381,10 @@ optim(c(-0.2,1),fn = opt , method = "Nelder-Mead", hessian = FALSE)
 
 
 ```
-Yes, the results for both are almost the same with some changes in the last few decimal places and both are almost same to the value found in b).  
-The function and gradient count is drastically lower when compared to b).  
-Also the gradient count for Nelder-Mead is NA since no computation of derivatives is necessary. 
 
-d) 
+d)  
+
 ```{r}
 glm(y~x,family = "binomial")
 
 ```
-Based on the output from the "glm" function, we can say that the output compared to b) and c) are almost the same with some changes in the last few decimal place. 
-
-# Appendix
-
-
-# Old code
-```{r NewtonMulti_rawcode, eval=F, include=F}
-# Create what is to be done in the Newton Multi function
-# This has now been copied to the Chunk "NewtonMulti"
-
-#Newton_multi(c(2,0), func=g, grad=g_gradient, Hess=g_Hessian)
-x_start <- c(-1,-2)
-func <- g
-grad <- g_gradient
-Hess <- g_Hessian
-
-epsilon <- 0.00001
-
-# Run Newton method
-estimates <- list(matrix(x_start))
-stop_condition <- FALSE
-#cat(length(estimates) < 2, "\n")
-#cat(stop_condition, "\n")
-  
-#a <- length(estimates) < 2
-#b <- stop_condition == FALSE
-#stop_condition <- FALSE
-
-while ((length(estimates) < 2) || stop_condition == FALSE){
-  #abs(func(tail(estimates, 1)[[1]]) - func(tail(estimates,2)[[1]])) >= epsilon && n_times < 10){
-  prev_x <- tail(estimates, 1)[[1]]
-  #cat(sprintf("%f\n",prev_x) )
-  cat(prev_x, "\n")
-  new_estim <- prev_x - solve(Hess(prev_x)) %*% grad(prev_x)
-  #cat("New estim:", new_estim, "\n")
-  estimates <- c(estimates, list(new_estim))
-    
-  # Calculate stopcond
-  first_vec <- tail(estimates, 1)[[1]]
-  secon_vec <- tail(estimates, 2)[[1]]
-  #stop_condition <- sqrt((first_vec[1]-secon_vec[1])^2 + (first_vec[2]-secon_vec[2])^2) < epsilon
-  #cat("fir", first_vec, "\n")
-  #cat("sec", secon_vec, "\n")
-  #stop_condition <- dist(t(data.frame(tail(estimates, 1)[[1]], tail(estimates, 2)[[1]])))[1] < epsilon
-  #cat("sc:", stop_condition, "\n")
-  stop_condition <- (t(first_vec - secon_vec)  %*% (first_vec - secon_vec)) < epsilon
-  }
-```
-
-
-```{r first_Newton_Multi_function, eval=F, include=F}
-# Implement Newton method
-Newton_multi <- function(x_start, func, grad, Hess, epsilon = 0.1){
-  # Check input
-  
-  # Run Newton method
-  estimates <- list(x_start)
-  stop_condition <- FALSE
-  #cat(length(estimates) < 2, "\n")
-  #cat(stop_condition, "\n")
-  
-  a <- length(estimates) < 2
-  #b <- stop_condition == FALSE
-  stop_condition <- FALSE
-  while ((length(estimates) < 2) || stop_condition == FALSE){
-    #abs(func(tail(estimates, 1)[[1]]) - func(tail(estimates,2)[[1]])) >= epsilon && n_times < 10){
-    prev_x <- tail(estimates, 1)[[1]]
-    cat(sprintf("%f\n",prev_x) )   
-    new_estim <- prev_x - solve(Hess(prev_x)) %*% grad(prev_x)
-    cat("New estim:", new_estim, "\n")
-    estimates <- append(estimates, new_estim)
-    
-    # Calculate stopcond
-    first_vec <- tail(estimates, 1)[[1]]
-    secon_vec <- tail(estimates, 2)[[1]]
-    #stop_condition <- sqrt((first_vec[1]-secon_vec[1])^2 + (first_vec[2]-secon_vec[2])^2) < epsilon
-    cat("fir", first_vec, "\n")
-    cat("sec", secon_vec, "\n")
-    #stop_condition <- dist(t(data.frame(tail(estimates, 1)[[1]], tail(estimates, 2)[[1]])))[1] < epsilon
-    cat("sc:", stop_condition, "\n")
-    #stop_condition <- (t(tail(estimates, 1)[[1]] - tail(estimates, 2)[[1]])  %*% (tail(estimates, 1)[[1]] - tail(estimates, 2)[[1]])) < epsilon
-  }
-  
-  return(tail(estimates, 1)[[1]])
-}
-
-Newton_multi(c(2,0), func=g, grad=g_gradient, Hess=g_Hessian)
-```
-
-
