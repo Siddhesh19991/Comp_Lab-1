@@ -24,14 +24,14 @@ $$H_g = \begin{bmatrix}
 
 See the Appendix for the R implementation of these functions. We will now proceed to plot a contour plot of $g$ in the region $x, y \in [-3, 3]$, with the precision of a square with side $0.01$. See Figure 1. We are interested in finding local maximums of $g$. To achieve this, we will implement the Newton method in a code chunk which can be found in the Appendix.
 
-```{r functions, echo=FALSE}
+```{r g functions (hidden), echo=FALSE}
 # Problem setup
 g <- function(x){-x[1]^2 - x[1]^2*x[2]^2 - 2*x[1]*x[2] + 2*x[1] + 2}
 g_gradient <- function(x){matrix(c(-2*x[1] - 2*x[2]^2*x[1] - 2*x[2]+2, -2*x[1]^2*x[2] -2*x[1]))}
 g_Hessian <- function(x){matrix(c(-2-2*x[2]^2, -4*x[1]*x[2]-2, -4*x[1]*x[2]-2, -2*x[1]^2), nrow=2)} # by col by default
 ```
 
-```{r CountourPlot, echo=F, out.width="60%", fig.align='center'}
+```{r CountourPlot (hidden), echo=F, out.width="60%", fig.align='center'}
 # Contour plot
 
 # Define the contour grid
@@ -61,7 +61,7 @@ contour(x=x_values,
 
 ```
 
-```{r NewtonMulti, echo=F}
+```{r NewtonMulti (hidden), echo=F}
 library(stringr)
 
 # The Newton method function
@@ -109,7 +109,7 @@ When the Newton method is run on the starting points $(2, 0), (-1, -2), (0, 1)$ 
 
 In this application, we could have used an implementation of the steepest ascent method instead. This would have some advantages over the Newton method, specifically it guarantees that the function $g$ increases in every step of the algorithm. The accompanying disadvantages would likely be a slower convergence, but it is possible that convergence would not be guaranteed. In addition, it introduces a "hyperparameter" which must be specified by the model designer.
 
-```{r Newton_Runs, echo=F}
+```{r Newton_Runs (hidden), echo=F}
 # Point 1
 x1 <- Newton(c(2, 0), func = g, grad = g_gradient, Hess = g_Hessian)
 
@@ -264,9 +264,110 @@ Based on the output from the "glm" function, we can say that the output compared
 
 # Appendix
 
-Question-2
+## Question 1
+
+```{r g functions, eval=F}
+# Problem setup
+g <- function(x){-x[1]^2 - x[1]^2*x[2]^2 - 2*x[1]*x[2] + 2*x[1] + 2}
+g_gradient <- function(x){matrix(c(-2*x[1] - 2*x[2]^2*x[1] - 2*x[2]+2, -2*x[1]^2*x[2] -2*x[1]))}
+g_Hessian <- function(x){matrix(c(-2-2*x[2]^2, -4*x[1]*x[2]-2, -4*x[1]*x[2]-2, -2*x[1]^2), nrow=2)} # by col by default
+```
+
+
+```{r CountourPlot, eval=F}
+# Contour plot
+
+# Define the contour grid
+x_values <- seq(-3, 3, 0.01)
+y_values <- seq(-3, 3, 0.01)
+z_values <- matrix(0,
+                   nrow=length(x_values),
+                   ncol=length(y_values),
+                   dimnames = list(x_values, y_values))
+
+# Calculate height over the grid
+for (i in 1:length(x_values)){
+  for (j in 1:length(y_values)){
+    z_values[i, j] <- g(c(x_values[i], y_values[j]))
+    #cat("New. x: ", x_i, " y:", y_i, " and value:", g(x_i, y_i), "\n")
+  }
+}
+
+# Make a contour plot
+contour(x=x_values,
+        y=y_values,
+        z = z_values,
+        main = "Fig 1. Contour plot of g(x,y)",
+        xlab = "x",
+        ylab = "y",
+        nlevels = 150)
+
+```
+
+
+```{r NewtonMulti, eval=F}
+library(stringr)
+
+# The Newton method function
+Newton <- function(x_start, func, grad, Hess, epsilon = 0.00001){
+  # Setup
+  estimates <- list(matrix(x_start))
+  stop_condition <- FALSE
+  
+  while (stop_condition == FALSE){
+    # Grab the last/previous x value
+    prev_x <- tail(estimates, 1)[[1]]
+    
+    # Calculate new x value, and add to estimates list
+    new_estim <- prev_x - solve(Hess(prev_x)) %*% grad(prev_x)
+    estimates <- c(estimates, list(new_estim))
+      
+    # Calculate stopcondition
+    first_vec <- tail(estimates, 1)[[1]]
+    secon_vec <- tail(estimates, 2)[[1]]
+    stop_condition <- (t(first_vec - secon_vec)  %*% (first_vec - secon_vec)) < epsilon
+  }
+  # Output
+  cat("---------------------------------------\n")
+  cat("Local extrema found: g(",
+      str_c(round(new_estim, 4), collapse=", "),
+      ") = ",
+      round(func(new_estim), 4), "\n",
+      
+      "Gradient(",
+      str_c(round(new_estim, 4), collapse=", "),
+      ") = (",
+      str_c(round(grad(new_estim), 4), collapse=", "), ")\n",
+      
+      "Hessian(",
+      str_c(round(new_estim, 4), collapse=", "),
+      ") = \n", sep="")
+  
+  print.default(round(Hess(new_estim), 4))
+  
+  return(new_estim)
+}
+```
+
+
+```{r Newton_Runs, eval=F}
+# Point 1
+x1 <- Newton(c(2, 0), func = g, grad = g_gradient, Hess = g_Hessian)
+
+# Point 2
+x2 <- Newton(c(-1, -2), func = g, grad = g_gradient, Hess = g_Hessian)
+
+# Point 3
+x3 <- Newton(c(0, 1), func = g, grad = g_gradient, Hess = g_Hessian)
+
+# Point 4
+x4 <- Newton(c(0.5, -1), func = g, grad = g_gradient, Hess = g_Hessian)
+```
+
+
+## Question-2
 a)
-```{r}
+```{r, eval=F}
 x <- c(0,0,0,0.1,0.1,0.3,0.3,0.9,0.9,0.9)
 y<- c(0,0,1,0,1,1,1,0,1,1)
 
@@ -357,7 +458,7 @@ dose <- function(beta0,beta1,third){
 ```
 
 b)
-```{r}
+```{r, eval=F}
 
 dose(-0.2,1,1)
 dose(-0.2,1,5)
@@ -366,7 +467,7 @@ dose(-0.2,1,5)
 
 c)  
 
-```{r}
+```{r, eval=F}
 opt<- function(a){
   comp<-c()
   for (i in 1:10){
@@ -384,7 +485,7 @@ optim(c(-0.2,1),fn = opt , method = "Nelder-Mead", hessian = FALSE)
 
 d)  
 
-```{r}
+```{r, eval=F}
 glm(y~x,family = "binomial")
 
 ```
