@@ -1,0 +1,66 @@
+---
+title: "Q 2"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+# Question 2
+
+## a
+```{r Laplace generator function, echo=F}
+# Inverse CDF formula from
+# https://en.wikipedia.org/wiki/Laplace_distribution
+
+# Generate laplace variates using inverse cumulative distribution function
+rlaplace <- function(n=1, location=0, scale=1){
+  output_vector <- c()
+  u <- runif(n)
+  for (i in 1:n){
+    inverse_F <- location - scale*sign(u[i] - 0.5)*log(1-2*abs(u[i]-0.5))
+    output_vector <- c(output_vector, inverse_F)
+  }
+  return(output_vector)
+}
+
+dlaplace <- function(x, location, scale){
+  (scale / 2) * exp(-scale*abs(x-location))
+}
+```
+
+
+```{r Generated Laplace plot, echo=F}
+hist(rlaplace(10000, 0, 1), breaks=100, freq = F)
+points(x = seq(-5, 5, 0.1), y=dlaplace(seq(-5, 5, 0.1), 0, 1), type="l")
+```
+
+Looks good.
+
+## b
+
+```{r Standard Normal generator function, echo=F}
+# Generate standard normal variates using rejection sampling
+rnorm_envelope <- function(n=1){ #mean=0, sd=1
+  output_vector <- c()
+  for (i in 1:n){
+    repeat{
+      u <- runif(1, 0, 1)
+      Y <- rlaplace(1, 0, 1)
+      ratio <- dnorm(Y) / dlaplace(Y, 0, 1)
+      if(u <= ratio){output_vector <- c(output_vector, Y);break}
+    }
+  }
+  return(output_vector)
+}
+
+# TO DO
+# Select an appropriate "a" and insert in the code
+
+# TEST
+hist(rnorm_envelope(1000), breaks=100, freq = F)
+points(x = seq(-5, 5, 0.1), y=dnorm(seq(-5, 5, 0.1), 0, 1), type="l")
+```
+
+
+
+
