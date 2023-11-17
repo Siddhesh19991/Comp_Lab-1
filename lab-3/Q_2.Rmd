@@ -6,8 +6,12 @@ output:
 ---
 
 # Question 2
+We will create a function for sampling from the double exponential (Laplace) distribution with location parameter $0$, and scale parameter $1$, with density
 
-## a
+$$g(x) = \frac{1}{2} \cdot \exp \Big( -\abs(x) \Big)$$
+
+The inverse distribution function $G^-1(x)$ was obtained through our [reference](https://en.wikipedia.org/wiki/Laplace_distribution) for the Laplace distribution. Below is our implementation `rlaplace` which sampl
+
 ```{r Laplace generator function}
 # Inverse CDF formula from
 # https://en.wikipedia.org/wiki/Laplace_distribution
