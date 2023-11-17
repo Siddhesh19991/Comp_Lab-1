@@ -8,7 +8,7 @@ output:
 # Question 2
 
 ## a
-```{r Laplace generator function, echo=F}
+```{r Laplace generator function}
 # Inverse CDF formula from
 # https://en.wikipedia.org/wiki/Laplace_distribution
 
@@ -29,7 +29,7 @@ dlaplace <- function(x, location, scale){
 ```
 
 
-```{r Generated Laplace plot, echo=F}
+```{r Generated Laplace plot}
 hist(rlaplace(10000, 0, 1), breaks=100, freq = F)
 points(x = seq(-5, 5, 0.1), y=dlaplace(seq(-5, 5, 0.1), 0, 1), type="l")
 ```
@@ -37,8 +37,21 @@ points(x = seq(-5, 5, 0.1), y=dlaplace(seq(-5, 5, 0.1), 0, 1), type="l")
 Looks good.
 
 ## b
+We will now use the rejection sampling method (see [reference](https://en.wikipedia.org/wiki/Rejection_sampling)) to generate standard normal variates. For the envelope we will use the Laplace distribution with location parameter $0$, and scale parameter $1$, scaled appropriately by a constant $a$. In order to find the optimal $a$, we construct the following expression and then derive the optimal (maximal) $a$ that satisfies the inequality.
 
-```{r Standard Normal generator function, echo=F}
+$$h(x) = \frac{g(x)}{f(x)} = \frac{1/2 \cdot \exp(-x)}{1/\sqrt{2\pi} \cdot \exp(-\frac{x^2}{2})} = \frac{\sqrt{\pi}}{\sqrt{2}} \cdot \exp \Big(\frac{x^2}{2} - x \Big) \geq a$$
+$$h'(x) = \frac{\sqrt{\pi}}{\sqrt{2}} \cdot (x-1) \cdot \exp \Big(\frac{x^2}{2} - x \Big)$$
+It is clear that $h(x)$ grows very large as $x$ approaches $\pm \infty$, and thus the lone extrema at $x = 1$ is a global minima. This implies that the optimal $a$ is
+
+$$a = h(1) = \frac{\sqrt{\pi}}{\sqrt{2}} \cdot \exp \Big (\frac{1^2}{2} - 1 \Big) \approx 0.76 \space \text{\space (rounded down)}$$
+
+We thus sample from the envelope
+
+$$Y \sim e(x) = g(x)/a.$$
+
+```{r Standard Normal generator function}
+a <- sqrt(pi/2) * exp(-1/2)
+
 # Generate standard normal variates using rejection sampling
 rnorm_envelope <- function(n=1){ #mean=0, sd=1
   output_vector <- c()
@@ -46,7 +59,7 @@ rnorm_envelope <- function(n=1){ #mean=0, sd=1
     repeat{
       u <- runif(1, 0, 1)
       Y <- rlaplace(1, 0, 1)
-      ratio <- dnorm(Y) / dlaplace(Y, 0, 1)
+      ratio <- dnorm(Y) / (dlaplace(Y, 0, 1) / a)
       if(u <= ratio){output_vector <- c(output_vector, Y);break}
     }
   }
@@ -57,10 +70,11 @@ rnorm_envelope <- function(n=1){ #mean=0, sd=1
 # Select an appropriate "a" and insert in the code
 
 # TEST
-hist(rnorm_envelope(1000), breaks=100, freq = F)
+set.seed(9432719)
+hist(rnorm_envelope(2000), breaks=100, freq = F,
+     main = "Fig 2.2. Laplace sampled Normal variates",
+     xlab = "x")
 points(x = seq(-5, 5, 0.1), y=dnorm(seq(-5, 5, 0.1), 0, 1), type="l")
 ```
-
-
 
 
