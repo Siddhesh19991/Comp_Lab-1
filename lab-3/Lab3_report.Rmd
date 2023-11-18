@@ -6,9 +6,10 @@ output:
   pdf_document: default
 ---
 
-
 # Question 1
-a)
+
+a)  
+
 ```{r}
 custom_density <- function(x) {
   
@@ -17,6 +18,7 @@ custom_density <- function(x) {
                 ifelse(0 < x & x <= 1, 1 - x, 0))) 
 }
 
+#Based on the function, we have choosen the uniform distribution as the envelop. 
 uniform_density <- function(x){
   ifelse(x < -1 | x > 1, 0,
          ifelse(-1 <= x & x <= 0, 1,
@@ -44,8 +46,8 @@ sampling<- function(amount){
 }
 ```
 
+b)  
 
-b)
 ```{r}
 x_pos <- function(u){
   a<-1-sqrt(1-u)
@@ -75,7 +77,8 @@ mixture2<- function(n,m_p,m_n){
 
 ```
 
-c)
+c)  
+
 ```{r}
 diff<- function(n){
   U1<-runif(n)
@@ -88,8 +91,8 @@ diff<- function(n){
 }
 ```
 
-d)
-Returing 10 samples for each
+d)  Returing 10 samples for each
+
 ```{r}
 sampling(10000)
 mixture2(10000,mixing_para_positive,mixing_para_negative)
@@ -98,10 +101,11 @@ a<-diff(10000)
 var(a)
 
 ```
-Based on the 3, I would prefer to generate the samples using c) as it was the most straightforward way to implement. 
 
+Based on the 3, I would prefer to generate the samples using c) as it was the most straightforward way to implement.
 
 # Question 2
+
 We will create a function for sampling from the double exponential (Laplace) distribution with location parameter $0$, and scale parameter $1$, with the density being
 
 $$g(x) = \frac{1}{2} \cdot \exp \Big( -|x| \Big)$$
@@ -141,9 +145,7 @@ points(x = seq(-5, 5, 0.1),
 
 We will now proceed to use the Rejection Sampling Method (RSM) (see [reference](https://en.wikipedia.org/wiki/Rejection_sampling)) to generate standard normal variates from $N(0,1)$. For the envelope we will use the $Laplace(0, 1)$ distribution, scaled appropriately by a constant $a$. In order to find the optimal $a$, we construct the following expression and then derive the optimal (maximal) $a$ that satisfies the inequality.
 
-$$h(x) = \frac{g(x)}{f(x)} = \frac{1/2 \cdot \exp(-x)}{1/\sqrt{2\pi} \cdot \exp(-\frac{x^2}{2})} = \sqrt{\frac{\pi}{2}} \cdot \exp \Big(\frac{x^2}{2} - x \Big) \geq a$$
-$$h'(x) = \sqrt{\frac{\pi}{2}} \cdot (x-1) \cdot \exp \Big(\frac{x^2}{2} - x \Big)$$
-It is clear that $h(x)$ grows very large as $x$ approaches $\pm \infty$, and thus the lone extrema at $x = 1$ is a global minima. This implies that the optimal $a$ is
+$$h(x) = \frac{g(x)}{f(x)} = \frac{1/2 \cdot \exp(-x)}{1/\sqrt{2\pi} \cdot \exp(-\frac{x^2}{2})} = \sqrt{\frac{\pi}{2}} \cdot \exp \Big(\frac{x^2}{2} - x \Big) \geq a$$ $$h'(x) = \sqrt{\frac{\pi}{2}} \cdot (x-1) \cdot \exp \Big(\frac{x^2}{2} - x \Big)$$ It is clear that $h(x)$ grows very large as $x$ approaches $\pm \infty$, and thus the lone extrema at $x = 1$ is a global minima. This implies that the optimal $a$ is
 
 $$a = h(1) = \sqrt{\frac{\pi}{2}} \cdot \exp \Big (\frac{1^2}{2} - 1 \Big) \approx 0.76 \space \space \space \space \text{(rounded down)}$$
 
@@ -192,4 +194,3 @@ hist(rnorm_rejection(2000), breaks=100, freq = F,
 # Add true standard normal density curve
 points(x = seq(-5, 5, 0.1), y = dnorm(seq(-5, 5, 0.1), 0, 1), type = "l")
 ```
-
