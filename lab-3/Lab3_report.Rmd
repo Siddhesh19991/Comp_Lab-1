@@ -1,0 +1,107 @@
+---
+title: "Lab 3 report"
+author: "Simon Jorstedt & Siddhesh Sreedar"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+---
+
+
+# Question 1
+
+
+
+
+
+# Question 2
+We will create a function for sampling from the double exponential (Laplace) distribution with location parameter $0$, and scale parameter $1$, with the density being
+
+$$g(x) = \frac{1}{2} \cdot \exp \Big( -|x| \Big)$$
+
+Below is our implementation `rlaplace` which samples from the $\text{Laplace}(\mu, \lambda)$ distribution using the [\textit{inverse distribution function (IDF) method}](https://en.wikipedia.org/wiki/Inverse_transform_sampling). The inverse distribution function $G^-1(x)$ was obtained through our [reference](https://en.wikipedia.org/wiki/Laplace_distribution) for the Laplace distribution. As per the IDF method, `rlaplace` first generates a uniformly random number from $U(0,1)$ for each desired observation. Then the IDF is applied to each such observation, so that the resulting observations are $Laplace(0,1)$ distributed.
+
+We then proceed to generate $10^4$ approximately independent observations from `rlaplace`, and plot the result in Figure 2.1, along with the true density curve of $Laplace(0,1)$. The results are quite good, as the distribution of the simulated values closely matches the true density.
+
+```{r Laplace generator function}
+# Generate laplace variates using Inverse Distribution Function (IDF)
+rlaplace <- function(n=1, location=0, scale=1){
+  # Generate n observations from U(0,1)
+  u <- runif(n)
+  
+  # Calculate (and return) corresponding IDF values
+  location - scale*sign(u - 0.5)*log(1-2*abs(u-0.5))
+}
+```
+
+```{r Figure 2.1 Laplace plot, echo=F}
+# Laplace density function for use in the histogram below 
+dlaplace <- function(x, location, scale){
+  (scale / 2) * exp(-scale*abs(x-location))
+}
+
+# Plot a histogram of 10^4 Laplace observations
+set.seed(03737693)
+hist(rlaplace(10000, 0, 1), breaks = 100, freq = F,
+     main = "Fig 2.1. Density of simulated Laplace observations",
+     xlab = "x")
+
+# Add true Laplace density curve
+points(x = seq(-5, 5, 0.1),
+       y = dlaplace(seq(-5, 5, 0.1), 0, 1),
+       type = "l")
+```
+
+We will now proceed to use the Rejection Sampling Method (RSM) (see [reference](https://en.wikipedia.org/wiki/Rejection_sampling)) to generate standard normal variates from $N(0,1)$. For the envelope we will use the $Laplace(0, 1)$ distribution, scaled appropriately by a constant $a$. In order to find the optimal $a$, we construct the following expression and then derive the optimal (maximal) $a$ that satisfies the inequality.
+
+$$h(x) = \frac{g(x)}{f(x)} = \frac{1/2 \cdot \exp(-x)}{1/\sqrt{2\pi} \cdot \exp(-\frac{x^2}{2})} = \sqrt{\frac{\pi}{2}} \cdot \exp \Big(\frac{x^2}{2} - x \Big) \geq a$$
+$$h'(x) = \sqrt{\frac{\pi}{2}} \cdot (x-1) \cdot \exp \Big(\frac{x^2}{2} - x \Big)$$
+It is clear that $h(x)$ grows very large as $x$ approaches $\pm \infty$, and thus the lone extrema at $x = 1$ is a global minima. This implies that the optimal $a$ is
+
+$$a = h(1) = \sqrt{\frac{\pi}{2}} \cdot \exp \Big (\frac{1^2}{2} - 1 \Big) \approx 0.76 \space \space \space \space \text{(rounded down)}$$
+
+Our envelope is thus
+
+$$e(x) = g(x)/a.$$
+
+We can now proceed to simulate $2000$ random numbers from $N(0,1)$ using the rejection sampling method. Below we implement this in `rnorm_rejection`. We also measure and output the average rejection rate when the function is run.
+
+```{r Standard Normal generator function}
+# Our derived optimal a
+a <- sqrt(pi/2) * exp(-1/2)
+
+# Generate standard normal variates using rejection sampling
+rnorm_rejection <- function(n=1){ #mean=0, sd=1
+  output_vector <- c()
+  
+  # Keep track of total number of attempts
+  n_tries <- 0
+  
+  # Run the algorithm once for every n desired values
+  for (i in 1:n){
+    # Repeat the sampling procedure until a value is accepted
+    repeat{
+      n_tries <- n_tries + 1
+      u <- runif(1, 0, 1)
+      Y <- rlaplace(1, 0, 1)
+      ratio <- dnorm(Y) / (dlaplace(Y, 0, 1) / a)
+      if(u <= ratio){output_vector <- c(output_vector, Y);break}
+    }
+  }
+  cat("The average rejection rate:", (n_tries-n)/n_tries, "\n")
+  return(output_vector)
+}
+```
+
+In Figure 2.2 below, we plot $2000$ standard normal variates sampled using `rnorm_rejection`, along with the true standard normal density (instead of values sampled from `rnorm`). The simulated distribution clearly resembles the standard normal, but it is not very smooth, which is desired.
+
+```{r Figure 2.2 Normal Plot, echo=F}
+# Plot a histogram of simulated Normal variates
+set.seed(9432719)
+hist(rnorm_rejection(2000), breaks=100, freq = F,
+     main = "Fig 2.2. Laplace sampled Normal variates",
+     xlab = "x")
+
+# Add true standard normal density curve
+points(x = seq(-5, 5, 0.1), y = dnorm(seq(-5, 5, 0.1), 0, 1), type = "l")
+```
+
