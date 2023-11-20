@@ -1,0 +1,19 @@
+---
+title: "Lab 4 report"
+author: "Simon Jorstedt & Siddhesh Sreedar"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+---
+
+# Question 1
+
+
+
+# Question 2
+
+
+
+# Appendix
+```{r appendix, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```

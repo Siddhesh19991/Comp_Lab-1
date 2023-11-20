@@ -11,6 +11,8 @@ output:
 a)  
 
 ```{r}
+# Question 1.a
+
 custom_density <- function(x) {
   
   ifelse(x < -1 | x > 1, 0,
@@ -44,11 +46,14 @@ sampling<- function(amount){
   hist(values, main = "Rejection sampling method")
   return(head(values,10))
 }
+
 ```
 
 b)  
 
 ```{r}
+# Question 1.b
+
 x_pos <- function(u){
   a<-1-sqrt(1-u)
   #hist(a)
@@ -80,6 +85,8 @@ mixture2<- function(n,m_p,m_n){
 c)  
 
 ```{r}
+# Question 1.c
+
 diff<- function(n){
   U1<-runif(n)
   U2<-runif(n)
@@ -89,11 +96,14 @@ diff<- function(n){
   hist(a, main = "Difference")
   return(head(a,10))
 }
+
 ```
 
 d)  Returing 10 samples for each
 
 ```{r}
+# Question 1.d
+
 sampling(10000)
 mixture2(10000,mixing_para_positive,mixing_para_negative)
 a<-diff(10000)
@@ -115,6 +125,8 @@ Below is our implementation `rlaplace` which samples from the $\text{Laplace}(\m
 We then proceed to generate $10^4$ approximately independent observations from `rlaplace`, and plot the result in Figure 2.1, along with the true density curve of $Laplace(0,1)$. The results are quite good, as the distribution of the simulated values closely matches the true density.
 
 ```{r Laplace generator function}
+# Question 2.a
+
 # Generate laplace variates using Inverse Distribution Function (IDF)
 rlaplace <- function(n=1, location=0, scale=1){
   # Generate n observations from U(0,1)
@@ -123,9 +135,12 @@ rlaplace <- function(n=1, location=0, scale=1){
   # Calculate (and return) corresponding IDF values
   location - scale*sign(u - 0.5)*log(1-2*abs(u-0.5))
 }
+
 ```
 
 ```{r Figure 2.1 Laplace plot, echo=F}
+# Question 2.a
+
 # Laplace density function for use in the histogram below 
 dlaplace <- function(x, location, scale){
   (scale / 2) * exp(-scale*abs(x-location))
@@ -141,6 +156,7 @@ hist(rlaplace(10000, 0, 1), breaks = 100, freq = F,
 points(x = seq(-5, 5, 0.1),
        y = dlaplace(seq(-5, 5, 0.1), 0, 1),
        type = "l")
+
 ```
 
 We will now proceed to use the Rejection Sampling Method (RSM) (see [reference](https://en.wikipedia.org/wiki/Rejection_sampling)) to generate standard normal variates from $N(0,1)$. For the envelope we will use the $Laplace(0, 1)$ distribution, scaled appropriately by a constant $a$. In order to find the optimal $a$, we construct the following expression and then derive the optimal (maximal) $a$ that satisfies the inequality.
@@ -156,6 +172,8 @@ $$e(x) = g(x)/a.$$
 We can now proceed to simulate $2000$ random numbers from $N(0,1)$ using the rejection sampling method. Below we implement this in `rnorm_rejection`. We also measure and output the average rejection rate when the function is run.
 
 ```{r Standard Normal generator function}
+# Question 2.b
+
 # Our derived optimal a
 a <- sqrt(pi/2) * exp(-1/2)
 
@@ -180,11 +198,14 @@ rnorm_rejection <- function(n=1){ #mean=0, sd=1
   cat("The average rejection rate:", (n_tries-n)/n_tries, "\n")
   return(output_vector)
 }
+
 ```
 
 In Figure 2.2 below, we plot $2000$ standard normal variates sampled using `rnorm_rejection`, along with the true standard normal density (instead of values sampled from `rnorm`). The simulated distribution clearly resembles the standard normal, but it is not very smooth, which is desired.
 
 ```{r Figure 2.2 Normal Plot, echo=F}
+# Question 2.b
+
 # Plot a histogram of simulated Normal variates
 set.seed(9432719)
 hist(rnorm_rejection(2000), breaks=100, freq = F,
@@ -193,4 +214,10 @@ hist(rnorm_rejection(2000), breaks=100, freq = F,
 
 # Add true standard normal density curve
 points(x = seq(-5, 5, 0.1), y = dnorm(seq(-5, 5, 0.1), 0, 1), type = "l")
+
+```
+
+
+# Appendix
+```{r appendix, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
 ```
