@@ -1,0 +1,144 @@
+---
+title: "Q1 Rmd"
+author: "Simon Jorstedt"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+
+# Question 1
+We are given a gamma distribution with density
+
+$$f(x) \propto x^5 e^{-x}, \space \space x > 0$$
+
+## Question 1.a, 1.b, 1.c
+We will implement the Metropolis-Hastings algorithm as a function where the proposal distribution can be specified. We will then run the algorithm to generate $10^4$ samples each for the Log-Normal $LN(X_t, 1)$, the chi-squared $\chi^2_{\lfloor X_t+1 \rfloor}$, and the THIS distributions. The result of this is reported in Figures 1, 2 and 3 respectively.
+
+```{r Metro_Hasting function, echo=F}
+# Question 1.a, 1.b, 1.c
+
+# Define a function proportional to the target density
+f_propo <- function(x){if(x > 0){x^5 * exp(-x)} else{NA}}
+
+# Create proposal density functions
+lognorm_proposal <- function(x, param){
+  dlnorm(x, meanlog = param, sdlog = 1)
+}
+
+chi_proposal <- function(x, param){
+  dchisq(x, df = floor(param+1))
+}
+
+new_proposal <- function(x, param){
+  
+}
+
+
+# Metro_Hasting Instructions
+# 
+# x_start is a 1-dim numeric.
+# prop_dens is a function which takes one named argument x,
+# and one unnamed argument, which is supposed to fit in with the distribution.
+# n is numeric, indicating number of observations to take (including burn-in)
+Metro_Hasting <- function(x_start, prop_dens, n=1) {
+  # Setup
+  x_t <- x_start
+  x_values <- c()
+
+  repeat{
+    # Generate new proposal
+    x_new <- rlnorm(1, meanlog = x_t, sdlog = 1)
+    
+    # Calculate probability value a
+    # as product of Bayesian proposal ratio
+    # and proposal density ratio (g(x_t | x_new) / g(x_new | x_t))
+    Bay_pos_rat <- (f_propo(x_new) / f_propo(x_t))
+    prop_ratio <- prop_dens(x=x_t, x_new) / prop_dens(x=x_new, x_t)
+    #prop_ratio <- dlnorm(x_t, meanlog = x_new) / dlnorm(x_new, meanlog = x_t)
+    a =  Bay_pos_rat * prop_ratio
+    
+    # Evaluate proposal value
+    # Accept the new value if u < a (even if a >= 1)
+    # Reject the new value with probability 1-a (if a < 1)
+    u <- runif(1)
+    if(u < a){x_t <- x_new}
+    
+    # Store the new value (even if x_t has not changed)
+    x_values <- c(x_values, x_t)
+    
+    # Check break condition
+    if(length(x_values) >= 10^4){break}
+  }
+  
+  return(x_values)
+}
+```
+
+# Question 1.d
+
+```{r Figure creation, echo=F, fig.cap="Fig test"}
+# Question 1.d
+
+# Generate Figure 1: Lognormal(x_t, 1) as proposal
+## Generate x values
+x_values_1 <- Metro_Hasting(1, prop_dens = lognorm_proposal, n = 10^4)
+
+## Plot the chain, histogram and combine them
+par(mfrow=c(1,2))
+plot(x_values_1, type = "l")
+hist(x_values_1, main="")
+
+
+# Generate Figure 2: Lognormal(x_t, 1) as proposal
+## Generate x values
+#x_values_2 <- Metro_Hasting(3, prop_dens = chi_proposal, n = 10^4)
+
+## Plot the chain, histogram and combine them
+#par(mfrow=c(1,2))
+#plot(x_values_2, type = "l")
+#hist(x_values_2, main="")
+```
+
+
+
+
+
+
+
+# Old code
+```{r, echo=F, eval=F}
+# Not the density
+f_prop <- function(x){if(x > 0){x^5 * exp(-x)} else{NA}}
+
+# Start
+x_t <- 2.5
+x_values <- c()
+
+repeat{
+  # Generate new proposal
+  x_new <- rlnorm(1, meanlog = x_t, sdlog = 1)
+  
+  # Calculate probability value a
+  # as product of Bayesian proposal ratio
+  # and proposal density ratio (g(x_t | x_new) / g(x_new | x_t))
+  Bay_pos_rat <- (f_prop(x_new) / f_prop(x_t))
+  prop_ratio <- (dlnorm(x_t, meanlog = x_new) / dlnorm(x_new, meanlog = x_t))
+  a =  Bay_pos_rat * prop_ratio
+  
+  # Evaluate proposal value
+  # Accept the new value if u < a (even if a >= 1)
+  # Reject the new value with probability 1-a (if a < 1)
+  u <- runif(1)
+  if(u < a){x_t <- x_new}
+  
+  # Store the new value (even if x_t has not changed)
+  x_values <- c(x_values, x_t)
+  
+  # Check break condition
+  if(length(x_values) >= 10^4){break}
+}
+```
+
+
+
+
