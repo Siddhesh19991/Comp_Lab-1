@@ -18,19 +18,22 @@ We will implement the Metropolis-Hastings algorithm as a function where the prop
 # Question 1.a, 1.b, 1.c
 
 # Define a function proportional to the target density
-f_propo <- function(x){if(x > 0){x^5 * exp(-x)} else{NA}}
+f_propo <- function(x){if(all(x >= 0)){(1/120)*x^5 * exp(-x)} else{NA}}
 
 # Create proposal density functions
-lognorm_proposal <- function(x, param){
-  dlnorm(x, meanlog = param, sdlog = 1)
+lognorm_proposal <- function(x=NA, param, sample=F){
+  if(sample == F){dlnorm(x, meanlog = param, sdlog = 1)}
+  else{rlnorm(1, meanlog = param)}
 }
 
-chi_proposal <- function(x, param){
-  dchisq(x, df = floor(param+1))
+chi_proposal <- function(x=NA, param, sample=F){
+  if(sample == F){dchisq(x, df = floor(param+1))}
+  else{rchisq(1, df=floor(param+1))}
 }
 
-new_proposal <- function(x, param){
-  
+new_proposal <- function(x=NA, param, sample=F){
+  if(sample == F){dexp(x, rate=1/param)}
+  else{rexp(1, rate=1/param)}
 }
 
 
@@ -47,7 +50,8 @@ Metro_Hasting <- function(x_start, prop_dens, n=1) {
 
   repeat{
     # Generate new proposal
-    x_new <- rlnorm(1, meanlog = x_t, sdlog = 1)
+    x_new <- prop_dens(param=x_t, sample = T)
+    #x_new <- rlnorm(1, meanlog = x_t, sdlog = 1)
     
     # Calculate probability value a
     # as product of Bayesian proposal ratio
@@ -61,6 +65,8 @@ Metro_Hasting <- function(x_start, prop_dens, n=1) {
     # Accept the new value if u < a (even if a >= 1)
     # Reject the new value with probability 1-a (if a < 1)
     u <- runif(1)
+    #print(u)
+    #print(a)
     if(u < a){x_t <- x_new}
     
     # Store the new value (even if x_t has not changed)
@@ -74,31 +80,52 @@ Metro_Hasting <- function(x_start, prop_dens, n=1) {
 }
 ```
 
-# Question 1.d
+## Question 1.d
 
 ```{r Figure creation, echo=F, fig.cap="Fig test"}
 # Question 1.d
 
 # Generate Figure 1: Lognormal(x_t, 1) as proposal
 ## Generate x values
-x_values_1 <- Metro_Hasting(1, prop_dens = lognorm_proposal, n = 10^4)
+set.seed(43849664)
+x_values_1 <- Metro_Hasting(3, prop_dens = lognorm_proposal, n = 10^4)
 
 ## Plot the chain, histogram and combine them
 par(mfrow=c(1,2))
 plot(x_values_1, type = "l")
-hist(x_values_1, main="")
+hist(x_values_1[-c(1:51)], main="Burn-in values", freq = F)
+points(seq(0, 20, length=100), f_propo(seq(0, 20, length=100)), type="l")
+
 
 
 # Generate Figure 2: Lognormal(x_t, 1) as proposal
 ## Generate x values
-#x_values_2 <- Metro_Hasting(3, prop_dens = chi_proposal, n = 10^4)
+set.seed(9427452)
+x_values_2 <- Metro_Hasting(3, prop_dens = chi_proposal, n = 10^4)
 
 ## Plot the chain, histogram and combine them
-#par(mfrow=c(1,2))
-#plot(x_values_2, type = "l")
-#hist(x_values_2, main="")
+par(mfrow=c(1,2))
+plot(x_values_2, type = "l")
+hist(x_values_2[-c(1:51)], main="Burn-in values", freq=F)
+points(seq(0, 20, length=100), f_propo(seq(0, 20, length=100)), type="l")
+
+
+
+# Generate Figure 3: Normal(x_t, sd=1) as proposal
+## Generate x values
+set.seed(971614)
+x_values_3 <- Metro_Hasting(5, prop_dens = new_proposal, n = 10^4)
+
+## Plot the chain, histogram and combine them
+par(mfrow=c(1,2))
+plot(x_values_3, type = "l")
+hist(x_values_3[-c(1:51)], main="Burn-in values", freq=F)
+points(seq(0, 20, length=100), f_propo(seq(0, 20, length=100)), type="l")
 ```
 
+
+## Question 1.e, 1.f
+One can estimate the expected value from each of the samples by averaging over them, for the log normal proposal, this yields `r round(mean(x_values_1[-c(1:51)]), 2)`. For the chi-squared proposal, this yields `r round(mean(x_values_2[-c(1:51)]), 2)`. For the exponential proposal, this yields `r round(mean(x_values_3[-c(1:51)]), 2)`. The Gamma distribution of interest can quickly be identified as having parameters $k=6$, and $\theta = 1$, and thus expected value $6$.
 
 
 
