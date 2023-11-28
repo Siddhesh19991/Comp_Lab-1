@@ -161,6 +161,11 @@ One can estimate the expected value from each of the samples by averaging over t
 
 a)
 ```{r}
+# Question 2.a
+
+
+n=1000
+
 w  <- 1.999
 xv <- seq(-1, 1, by=0.01) * 1/sqrt(1-w^2/4) # we divide by "sqrt(1-w^2/4)" to ensure the the value below the root in the below equation is postive.
 plot(xv, xv, type="n", xlab=expression(x[1]), ylab=expression(x[2]), las=1)
@@ -173,15 +178,19 @@ lines(xv, -(w/2)*xv+sqrt(1-(1-w^2/4)*xv^2), lwd=2, col=8)
 
 b)
 x2 given x1:
-[ -(1.999/2)*x1-sqrt(1-(1-1.999^2/4)*x1^2), -(1.999/2)*x1+sqrt(1-(1-1.999^2/4)*x1^2) ] 
+$( -(1.999/2)*x_1-\sqrt{1-(1-1.999^2)/4)*x_1^2}, -(1.999/2)*x_1+\sqrt{1-(1-1.999^2/4)*x_1^2} )$
+
+
+
 
 
 x1 given x2:
-[ -(1.999/2)*x2-sqrt(1-(1-1.999^2/4)*x2^2), -(1.999/2)*x2+sqrt(1-(1-1.999^2/4)*x2^2) ]
+$( -(1.999/2)*x_2-\sqrt{1-(1-1.999^2/4)*x_2^2}, -(1.999/2)*x_2+\sqrt{1-(1-1.999^2/4)*x_2^2} )$
 
 
 c)
 ```{r}
+# Question 2.c
 
 one<-c()
 two<-c()
@@ -221,6 +230,8 @@ gibbs<- function(x_one,x_two,n){
 
 For starting values of 0 and 0, we plot the samples as well and determining P(X1 > 0):
 ```{r}
+# Question 2.c
+
 gibbs(0,0,1000)
 w  <- 1.999
 xv <- seq(-1, 1, by=0.01) * 1/sqrt(1-w^2/4) # we divide by "sqrt(1-w^2/4)" to ensure the the value below the root in the below equation is postive.
@@ -235,15 +246,18 @@ sum(one>0)/n
 
 Determining P(X1 > 0) by repeating:
 ```{r}
-gibbs(0,0,1000)
-sum(one>0)/n
-
+# Question 2.c
 
 gibbs(0,0,1000)
 sum(one>0)/n
 
+
 gibbs(0,0,1000)
 sum(one>0)/n
+
+gibbs(0,0,1000)
+sum(one>0)/n
+
 ```
 
 The true probability would be the area to right of the ellipse starting from 0 divide by the total area of the ellipse. Since
@@ -256,18 +270,19 @@ So it doesn't sample from the entire distribution but a portion.
 
 e)
 ```{r}
+# Question 2.e
 
 u1<-seq(-63.245,63.245,by=0.01)
 uv <- u1
-plot(uv, uv, type="n", las=1,ylim = c(-5,5))
+plot(uv, uv, type="n",xlab= "u1", ylab="u2", las=1,ylim = c(-5,5))
 # ellipse
 lines(uv, sqrt((4-0.001*uv^2)/3.999), lwd=2, col=8)
 lines(uv, -sqrt((4-0.001*uv^2)/3.999), lwd=2, col=8)
 
-
 ```
 
 ```{r}
+# Question 2.e
 
 one_u<-c()
 two_u<-c()
@@ -306,11 +321,12 @@ gibbs_2<- function(u_one,u_two,n){
 
 For starting values of 0 and 0, we plot the samples as well and determining P((U1 + U1)/2 > 0):
 ```{r}
+# Question 2.e
 
 gibbs_2(0,0,1000)
 u1<-seq(-63.245,63.245,by=0.01)
 uv <- u1
-plot(uv, uv, type="n", las=1,ylim = c(-5,5))
+plot(uv, uv, type="n",xlab= "u1", ylab="u2", las=1,ylim = c(-5,5))
 # ellipse
 lines(uv, sqrt((4-0.001*uv^2)/3.999), lwd=2, col=8)
 lines(uv, -sqrt((4-0.001*uv^2)/3.999), lwd=2, col=8)
@@ -321,6 +337,7 @@ sum((one_u+two_u)/2>0)/1000
 
 determining P((U1 + U1)/2 > 0) by repeating:
 ```{r}
+# Question 2.e
 gibbs_2(0,0,1000)
 sum((one_u+two_u)/2>0)/1000
 
@@ -330,7 +347,6 @@ sum((one_u+two_u)/2>0)/1000
 
 gibbs_2(0,0,1000)
 sum((one_u+two_u)/2>0)/1000
-
 
 ```
 
