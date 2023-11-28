@@ -7,47 +7,58 @@ output: pdf_document
 
 
 # Question 1
-We are given a gamma distribution with density
+We are given a gamma distribution with density $f$, where
 
 $$f(x) \propto x^5 e^{-x}, \space \space x > 0$$
 
-## Question 1.a, 1.b, 1.c
-We will implement the Metropolis-Hastings algorithm as a function where the proposal distribution can be specified. We will then run the algorithm to generate $10^4$ samples each for the Log-Normal $LN(X_t, 1)$, the chi-squared $\chi^2_{\lfloor X_t+1 \rfloor}$, and the THIS distributions. The result of this is reported in Figures 1, 2 and 3 respectively.
+## Question 1.a, 1.b, 1.c, 1.d
+We will implement the Metropolis-Hastings algorithm as a function where the proposal distribution can be specified. We will then run the algorithm to generate $10^4$ samples each for the Log-Normal $LN(X_t, 1)$, the chi-squared $\chi^2_{\lfloor X_t+1 \rfloor}$, and the exponential $\text{Exp}(1)$ distributions. The result of this is reported in Figures 1, 2 and 3 respectively.
+
+In Figure 1, we see that the used Lognormal distribution has poor convergence qualities. It appears to spend many iterations rejecting new samples. In Figure 2 we see a seemingly much better result. The algorithm appears to accept most new samples and the samples fall into a fairly constant range throughout the sampling. When comparing the histograms of Figure 1 and 2, it is very clear that the lognormal proposal distribution leads to a heavily oversampled lower half of the true distribution (roughly the interval $[4, 5]$. This is also evident from the included true density curves. In Figure 3 we see a result that is very similar to that of Figure 2. The samples quickly fall into a fairly constant range of values, and the histogram of samples is very similar to the one generated from using the Chisquared proposal distribution in Figure 2. For all three proposal distributions, we have removed the first $50$ generated values as an assumed burn-in period. That period is seemingly not long enough for the Lognormal proposal distribution, and clearly fully sufficient for the Chisquared and exponential proposal distributions.
 
 ```{r Metro_Hasting function, echo=F}
 # Question 1.a, 1.b, 1.c
 
 # Define a function proportional to the target density
-f_propo <- function(x){if(x > 0){x^5 * exp(-x)} else{NA}}
+f_propo <- function(x){if(all(x >= 0)){(1/120)*x^5 * exp(-x)} else{NA}}
 
 # Create proposal density functions
-lognorm_proposal <- function(x, param){
-  dlnorm(x, meanlog = param, sdlog = 1)
+lognorm_proposal <- function(x=NA, param, sample=F){
+  if(sample == F){dlnorm(x, meanlog = param, sdlog = 1)}
+  else{rlnorm(1, meanlog = param)}
 }
 
-chi_proposal <- function(x, param){
-  dchisq(x, df = floor(param+1))
+chi_proposal <- function(x=NA, param, sample=F){
+  if(sample == F){dchisq(x, df = floor(param+1))}
+  else{rchisq(1, df=floor(param+1))}
 }
 
-new_proposal <- function(x, param){
-  
+new_proposal <- function(x=NA, param, sample=F){
+  if(sample == F){dexp(x, rate=1/param)}
+  else{rexp(1, rate=1/param)}
 }
 
 
-# Metro_Hasting Instructions
+# Metropolis_Hasting function Instructions
 # 
-# x_start is a 1-dim numeric.
-# prop_dens is a function which takes one named argument x,
-# and one unnamed argument, which is supposed to fit in with the distribution.
-# n is numeric, indicating number of observations to take (including burn-in)
+# x_start is a 1-dim numeric indicating the starting value of the algorithm.
+# 
+# prop_dens is a function which takes an argument `x`, an argument `param` specifying the model,
+# and an optional argument `sample` which can be used to indicate that prop_dens
+# should return one sampled number from the specified distribution.
+# Otherwise prop_dens should return the distribution density at x.
+# 
+# n is a numeric, indicating number of observations to take (including burn-in).
 Metro_Hasting <- function(x_start, prop_dens, n=1) {
   # Setup
   x_t <- x_start
   x_values <- c()
-
+  
+  # Generate samples until there are n of them
   repeat{
     # Generate new proposal
-    x_new <- rlnorm(1, meanlog = x_t, sdlog = 1)
+    x_new <- prop_dens(param=x_t, sample = T)
+    #x_new <- rlnorm(1, meanlog = x_t, sdlog = 1)
     
     # Calculate probability value a
     # as product of Bayesian proposal ratio
@@ -72,73 +83,68 @@ Metro_Hasting <- function(x_start, prop_dens, n=1) {
   
   return(x_values)
 }
+
 ```
 
-# Question 1.d
-
-```{r Figure creation, echo=F, fig.cap="Fig test"}
+```{r Figure creation Lognormal, echo=F, fig.cap="Lognormal porposal distribution"}
 # Question 1.d
 
 # Generate Figure 1: Lognormal(x_t, 1) as proposal
 ## Generate x values
-x_values_1 <- Metro_Hasting(1, prop_dens = lognorm_proposal, n = 10^4)
+set.seed(43849664)
+x_values_1 <- Metro_Hasting(3, prop_dens = lognorm_proposal, n = 10^4)
 
 ## Plot the chain, histogram and combine them
 par(mfrow=c(1,2))
-plot(x_values_1, type = "l")
-hist(x_values_1, main="")
+plot(x_values_1, type = "l", main="Full sample evolution", ylab = "Sample value")
+hist(x_values_1[-c(1:51)],
+     main="Histogram of samples\n(excluding burn-in values)",
+     xlab = "Sample value",
+     freq = F)
+points(seq(0, 20, length=100), f_propo(seq(0, 20, length=100)), type="l")
 
+```
 
-# Generate Figure 2: Lognormal(x_t, 1) as proposal
+```{r Figure creation Chisquared, echo=F, fig.cap="Chisquared proposal distribution"}
+# Question 1.d
+
+# Generate Figure 2: Chisquared(floor(x_t+1)) as proposal
 ## Generate x values
-#x_values_2 <- Metro_Hasting(3, prop_dens = chi_proposal, n = 10^4)
+set.seed(9427452)
+x_values_2 <- Metro_Hasting(3, prop_dens = chi_proposal, n = 10^4)
 
 ## Plot the chain, histogram and combine them
-#par(mfrow=c(1,2))
-#plot(x_values_2, type = "l")
-#hist(x_values_2, main="")
+par(mfrow=c(1,2))
+plot(x_values_2, type = "l", main="Full sample evolution", ylab = "Sample value")
+hist(x_values_2[-c(1:51)],
+     main="Histogram of samples\n(excluding burn-in values)",
+     xlab = "Sample value",
+     freq=F)
+points(seq(0, 20, length=100), f_propo(seq(0, 20, length=100)), type="l")
+
+```
+
+```{r Figure creation Exponential, echo=F, fig.cap="Exponential proposal distribution"}
+# Question 1.d
+
+# Generate Figure 3: Normal(x_t, sd=1) as proposal
+## Generate x values
+set.seed(971614)
+x_values_3 <- Metro_Hasting(5, prop_dens = new_proposal, n = 10^4)
+
+## Plot the chain, histogram and combine them
+par(mfrow=c(1,2))
+plot(x_values_3, type = "l", main="Full sample evolution", ylab = "Sample value")
+hist(x_values_3[-c(1:51)],
+     main="Histogram of samples\n(excluding burn-in values)",
+     xlab = "Sample value",
+     freq=F)
+points(seq(0, 20, length=100), f_propo(seq(0, 20, length=100)), type="l")
+
 ```
 
 
-
-
-
-
-
-# Old code
-```{r, echo=F, eval=F}
-# Not the density
-f_prop <- function(x){if(x > 0){x^5 * exp(-x)} else{NA}}
-
-# Start
-x_t <- 2.5
-x_values <- c()
-
-repeat{
-  # Generate new proposal
-  x_new <- rlnorm(1, meanlog = x_t, sdlog = 1)
-  
-  # Calculate probability value a
-  # as product of Bayesian proposal ratio
-  # and proposal density ratio (g(x_t | x_new) / g(x_new | x_t))
-  Bay_pos_rat <- (f_prop(x_new) / f_prop(x_t))
-  prop_ratio <- (dlnorm(x_t, meanlog = x_new) / dlnorm(x_new, meanlog = x_t))
-  a =  Bay_pos_rat * prop_ratio
-  
-  # Evaluate proposal value
-  # Accept the new value if u < a (even if a >= 1)
-  # Reject the new value with probability 1-a (if a < 1)
-  u <- runif(1)
-  if(u < a){x_t <- x_new}
-  
-  # Store the new value (even if x_t has not changed)
-  x_values <- c(x_values, x_t)
-  
-  # Check break condition
-  if(length(x_values) >= 10^4){break}
-}
-```
-
-
+## Question 1.e, 1.f
+One can estimate the expected value from each of the samples by averaging over them, for the log normal proposal, this yields `r round(mean(x_values_1[-c(1:51)]), 2)`. For the chi-squared proposal, this yields `r round(mean(x_values_2[-c(1:51)]), 2)`. For the exponential proposal, this yields `r round(mean(x_values_3[-c(1:51)]), 2)`. The Gamma distribution of interest can quickly be identified as having parameters $k=6$, and $\theta = 1$, and thus expected value $6$. As expected from studying Figures 2 and 3, the Chisquared and Exponential distributions achieve good estimates of the expected value.
 
 
