@@ -233,21 +233,21 @@ sum(one>0)/n
 
 ```
 
-Determining P(X1 > 0) for other starting values:
+Determining P(X1 > 0) by repeating:
 ```{r}
-gibbs(30,-30,1000)
+gibbs(0,0,1000)
 sum(one>0)/n
 
 
-gibbs(-20,0,1000)
+gibbs(0,0,1000)
 sum(one>0)/n
 
-gibbs_2(-30,0,1000)
+gibbs(0,0,1000)
 sum(one>0)/n
 ```
 
-The true probability would be the area to right of the ellipse starting from 0 divide by the total area of the ellipse. 
-
+The true probability would be the area to right of the ellipse starting from 0 divide by the total area of the ellipse. Since
+0 is splits the ellipse equally, it should be around 0.5. 
 
 
 d)
@@ -319,20 +319,22 @@ sum((one_u+two_u)/2>0)/1000
 
 ```
 
-determining P((U1 + U1)/2 > 0) for other starting values:
+determining P((U1 + U1)/2 > 0) by repeating:
 ```{r}
-gibbs_2(-20,0,1000)
+gibbs_2(0,0,1000)
 sum((one_u+two_u)/2>0)/1000
 
 
-gibbs_2(-30,0,1000)
+gibbs_2(0,0,1000)
 sum((one_u+two_u)/2>0)/1000
 
+gibbs_2(0,0,1000)
+sum((one_u+two_u)/2>0)/1000
 
 
 ```
 
-Upon comparing the probabilities, we can see that the probabilities are higher for part "e" as compared to part "c". 
+Upon comparing the probabilities, we can see that the probabilities are generally more consistent around 0.5 as compared to part c). 
 
 
 # Appendix
