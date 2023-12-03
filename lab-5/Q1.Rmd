@@ -1,0 +1,63 @@
+---
+title: "Q1"
+author: "Simon Jorstedt"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+
+```{r}
+# Setup packages and data
+
+library(magrittr)
+library(dplyr)
+
+# Read lottery data
+df_lottery <- read.table("lottery.txt", col.names = c("Draft_No", "Day_of_year", "Letter_rank"))
+
+```
+
+```{r, echo=F}
+# Question 1.1
+
+plot(y=df_lottery$Draft_No,
+     x=df_lottery$Day_of_year,
+     main = "Fig 1.1: Draft Num. vs Day of year")
+
+```
+
+In figure 1.1, there is no immediate pattern that emerges. The spread of draft numbers appears roughly uniform.
+
+```{r, echo=F}
+# Question 1.2
+
+# Fit a regular linear model
+linmod_curve <- lm(data = df_lottery,
+                   Draft_No ~ Day_of_year)
+
+# Fit a loess model
+loess_curve <- loess(data = df_lottery,
+                     Draft_No ~ Day_of_year)
+
+# Add loess fitted values to dataframe
+df_lottery <- df_lottery %>% mutate(loess_fitted = loess_curve$fitted)
+
+# Plot data along with both fitted curves
+p_linmod_curve <- plot(y=df_lottery$Draft_No,
+                       x=df_lottery$Day_of_year,
+                       main = "Fig 1.2: Draft Num. vs Day of year with")
+# Add lm line
+abline(b = linmod_curve$coefficients[2], a = linmod_curve$coefficients[1], col="red", lwd=2)
+
+# Add loess curve
+loess_data <- df_lottery %>% arrange(Day_of_year)
+points(x=loess_data$Day_of_year, loess_data$loess_fitted, type = "l", col="blue", lwd = 2)
+
+```
+
+In Figure 1.2, we see that the normal linear regression line and the loess curve behave very similarly. They are both almost horizontal, which imples a low correlation between the variables. The slight negative slopes implies that higher draft numbers are ever so slightly more likely for the early days of the years. The lottery is surely random, but is it truly uniform?
+
+
+
+
+
