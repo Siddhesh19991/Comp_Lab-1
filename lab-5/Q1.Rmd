@@ -5,6 +5,7 @@ date: "`r Sys.Date()`"
 output: pdf_document
 ---
 
+# Question 1
 
 ```{r}
 # Setup packages and data
@@ -17,7 +18,9 @@ df_lottery <- read.table("lottery.txt", col.names = c("Draft_No", "Day_of_year",
 
 ```
 
-```{r, echo=F}
+## Question 1.1
+
+```{r, echo=F, out.width="70%", fig.align='center'}
 # Question 1.1
 
 plot(y=df_lottery$Draft_No,
@@ -28,7 +31,7 @@ plot(y=df_lottery$Draft_No,
 
 In figure 1.1, there is no immediate pattern that emerges. The spread of draft numbers appears roughly uniform.
 
-```{r, echo=F}
+```{r, echo=F, out.width="70%", fig.align='center'}
 # Question 1.2
 
 # Fit a regular linear model
@@ -55,9 +58,26 @@ points(x=loess_data$Day_of_year, loess_data$loess_fitted, type = "l", col="blue"
 
 ```
 
-In Figure 1.2, we see that the normal linear regression line and the loess curve behave very similarly. They are both almost horizontal, which imples a low correlation between the variables. The slight negative slopes implies that higher draft numbers are ever so slightly more likely for the early days of the years. The lottery is surely random, but is it truly uniform?
+In Figure 1.2, we fit a classical linear regression line, and a Local Polynomial Regression model (loess) on the data from Figure 1.1. We see that the linear regression line and the loess curve behave very similarly. They are both almost horizontal, which imples a low correlation between the variables. The slight negative slopes implies that higher draft numbers are ever so slightly more likely for the early days of the years. The lottery is surely random, but is it truly uniform?
 
+## Question 1.3
 
+```{r}
+# Question 1.3
 
+# Create an S-statistic function
+statistic_1 <- function(data, indexes){
+  data <- data[indexes]
+  S <- sum(abs(data-mean(data)))
+}
 
+result <- boot(loess_curve$fitted, statistic = statistic_1, R=2000)
+
+print(boot.ci(result))
+
+```
+
+These confidence intervals indicate that the distribution of the S-statistic has a quite high mean value. This indicates that the lottery is not truly uniformly random.
+
+## Question 1.4
 
