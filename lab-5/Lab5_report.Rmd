@@ -158,6 +158,7 @@ test_null(df_blocks_k, 2000)
 
 1)
 ```{r Question 2.1}
+# Question 2.1
 data<-read.csv2("prices1.csv")
 plot(data$SqFt,data$Price)
 
@@ -170,6 +171,8 @@ Yes, a straight line does seem like a good fit for the data.
 
 2)
 ```{r Question 2.2}
+#Question 2.1
+
 #Price = b + a1*SqFt + a2*(SqFt - c)
 
 sum(model$residuals^2)
@@ -196,6 +199,8 @@ sum(model3$residuals^2) #RSS value
 
 3)
 ```{r Question 2.3}
+#Question 2.3
+
 #110 rows 
 data<-read.csv2("prices1.csv")
 
@@ -246,7 +251,7 @@ stat<-function(data,index){
 }
   
   
-var<-boot(data = data,stat , R = 2000)
+var<-boot(data = data,stat , R = 10000)
 plot(var)
 
 #the value of c from the entire data
@@ -261,9 +266,11 @@ suppressWarnings(boot.ci(var))
 
 4)
 ```{r Question 2.4}
+#Question 2.4
+
 value_c_2<-c()
 for (i in 1:110){
-  if (i %% 50 == 0) {print(sprintf("Iteration %d",i))}
+  #if (i %% 50 == 0) {print(sprintf("Iteration %d",i))}
   data3<-data[-i,]
   
   min<-function(c,data){
@@ -293,7 +300,8 @@ variance as compared to the bootstrap estimate.
 
 5)
 ```{r Question 2.5}
-boot.ci(var)
+#Question 2.5
+suppressWarnings(boot.ci(var))
 ```
 We see that based on a 95% CI, the BCa gives a tighter CI while the Normal gives the broadest CI. 
 The Basic and Percentile CI, have the same difference value between the max and min range of the CI. 
