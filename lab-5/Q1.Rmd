@@ -7,11 +7,12 @@ output: pdf_document
 
 # Question 1
 
-```{r}
+```{r Setup}
 # Setup packages and data
 
 library(magrittr)
 library(dplyr)
+library(boot)
 
 # Read lottery data
 df_lottery <- read.table("lottery.txt", col.names = c("Draft_No", "Day_of_year", "Letter_rank"))
@@ -60,24 +61,33 @@ points(x=loess_data$Day_of_year, loess_data$loess_fitted, type = "l", col="blue"
 
 In Figure 1.2, we fit a classical linear regression line, and a Local Polynomial Regression model (loess) on the data from Figure 1.1. We see that the linear regression line and the loess curve behave very similarly. They are both almost horizontal, which imples a low correlation between the variables. The slight negative slopes implies that higher draft numbers are ever so slightly more likely for the early days of the years. The lottery is surely random, but is it truly uniform?
 
-## Question 1.3
+## Question 1.3 and 1.4
+Now we wish to investigate whether or not the true values $Y$ truly are uniformly random. We will do so by drawing 2000 bootstrap samples from the fitted values $\hat{Y}$, and calculating the statistic
+
+$$S = \frac 1 n \sum_{i = 1}^n |\hat{Y_i} - \bar{Y}|$$
+where $\hat{Y_i}$ is the $i$:th predicted value of a particular Bootstrap sample, and $\bar{Y}$ is the mean of the true observations that correspond to that particular Bootstrap sample. We have introduced the scale factor $1/n$ in the statistic because it makes it more easily interpretable.
 
 ```{r}
 # Question 1.3
 
+empir_mean <- mean(df_lottery$Day_of_year)
+
 # Create an S-statistic function
 statistic_1 <- function(data, indexes){
   data <- data[indexes]
-  S <- sum(abs(data-mean(data)))
+  S <- (1/length(indexes)) * sum(abs(data-mean(df_lottery$Day_of_year[indexes])))
 }
 
 result <- boot(loess_curve$fitted, statistic = statistic_1, R=2000)
 
 print(boot.ci(result))
 
+cat("\nS estimate:", result$t0)
+
+cat("\nEstimated p-value:", mean(result$t >= result$t0))
 ```
 
-These confidence intervals indicate that the distribution of the S-statistic has a quite high mean value. This indicates that the lottery is not truly uniformly random.
+In the chunk above we carried out the Bootstrap sampling using the package `boot`. The estimate of $S$ lies within all the confidence intervals, and the estimated p-value is not significant under a standard confidence level of $0.05$. All this combined implies that the lottery at least is not significantly un-uniform and thus unfair. We can thus not reject the null hypothesis that the lottery is "random" (although the instructions surely must mean \textit{uniform}).
 
-## Question 1.4
+## Question 1.5
 
