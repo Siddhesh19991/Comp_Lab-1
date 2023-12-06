@@ -1,0 +1,45 @@
+---
+title: "Q2"
+author: "Simon Jorstedt"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+
+
+# Question 2
+
+```{r Setup, echo=F, message=F, warning=F}
+# Setup
+
+library(magrittr)
+library(dplyr)
+
+df_prodfails <- read.csv("censoredproc.csv", sep = ";")
+```
+
+## Question 2.1
+```{r, echo=F, fig.align='center', out.width="70%"}
+# Question 2.1
+
+# Create plot grid
+par(mfrow = c(1,2))
+
+hist(df_prodfails$time,
+     freq = F,
+     main = "All recorded times",
+     xlab = "Fail time")
+
+hist(df_prodfails %>% filter(cens == 1) %>% extract2(1),
+     freq=F,
+     main = "Uncensored fail times",
+     xlab = "Fail time")
+
+# Set figure title
+# Title is currently cropped
+title("Figure 2.1: Density of fail times", outer=T)
+```
+
+Both histograms in Figure 2.1 appear approximately exponential. The density for all recorded times is not significantly different from the uncensored fail times, but it should be noted that the censored fail times only make up about $23$ % of the data.
+
+
