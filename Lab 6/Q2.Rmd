@@ -42,4 +42,8 @@ title("Figure 2.1: Density of fail times", outer=T)
 
 Both histograms in Figure 2.1 appear approximately exponential. The density for all recorded times is not significantly different from the uncensored fail times, but it should be noted that the censored fail times only make up about $23$ % of the data.
 
+## Question 2.2
+Let us now assume that the fail times are exponentially distributed, and thus the censored fail times will follow a truncated exponential distribution. We introduce an indicator variable $\delta_i$ which takes the value $0$ if observation $x_i$ is censored, and $1$ if it is not. The likelihood of a censored observation $x_i$ is $F(x_i)$. Using this, we can formulate the likelihood function for the data in the following way,
+
+$$L(\lambda) = \prod_{i=1}^n f(x_i)^{\delta_i} \cdot F(x_i)^{1-\delta_i} = \prod_{i=1}^n \Big ( \lambda \cdot e^{-\lambda x_i} \Big)^{\delta_i} \cdot \Big( 1- e^{-\lambda x_i} \Big) ^{(1-\delta_i)}$$
 
