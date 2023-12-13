@@ -7,7 +7,12 @@ output: pdf_document
 
 
 
-# Question 2
+# Question 2 - EM Algorithm
+A certain type of product fails after random times. We are given a dataset of observations of these fail times. Most observations represent the exact fail time, but for some observations, the time that a product was discovered to have failed is recorded instead. In other words, these observations are censored. Assuming that fail times and time until discovery are independent, this would imply that the uncensored observations can be modeled by some probability distribution $X \sim D$, and the censored observations can be modeled by the distribution of a random variable $X + Y$ where $Y$ is a random variable from the distribution of the time between a product failing and it being discovered. In the instructions, it is stated that the censored measurements are left censored, which makes sense in this context.
+
+In the instructions it is also stated, that if the uncensored observations are assumed to be exponentially distributed, then the censored observations follow a truncated exponential distribution. This makes less sense. In addition, when the distribution of the observed fail times is investigated visually in Figure 2.1 below, we find that the \textit{allegedly} left censored and/or truncated censored observations definetly are not left truncated, and likely not left censored either. Huh. When asked to clarify this conundrum, the teacher responsible for the course and the lab instructions, Krzysztof Bartoszek, stated that perhaps the censored data is in fact right-truncated. This interestingly makes even less sense. In addition, we the students were encouraged to (paraphrasing) "just do the work and follow the instructions regardless of what the data looks like".
+
+... Anyway, let us proceed with this \textit{interesting} lab assignment.
 
 ```{r Setup, echo=F, message=F, warning=F}
 # Setup
@@ -15,7 +20,11 @@ output: pdf_document
 library(magrittr)
 library(dplyr)
 
-df_prodfails <- read.csv("censoredproc.csv", sep = ";")
+# Read in the data, and create a column with clear indication whether an
+# observation is censored or not. To be clear, cens=2 indicates that an
+# observation *is* censored, and thus "yes".
+df_prodfails <- read.csv("censoredproc.csv", sep = ";") %>%
+  mutate(censored = c("no", "yes")[(cens == 2)+1])
 ```
 
 ## Question 2.1
@@ -23,16 +32,21 @@ df_prodfails <- read.csv("censoredproc.csv", sep = ";")
 # Question 2.1
 
 # Create plot grid
-layout(mat=matrix(c(1,2), nrow = 1, byrow = T))
+layout(mat=matrix(c(1,2, 3), nrow = 1, byrow = T))
 
 hist(df_prodfails$time,
      freq = F,
      main = "All recorded times",
      xlab = "Fail time")
 
-hist(df_prodfails %>% filter(cens == 1) %>% extract2(1),
+hist(df_prodfails %>% filter(censored == "no") %>% extract2(1),
      freq=F,
      main = "Uncensored fail times",
+     xlab = "Fail time")
+
+hist(df_prodfails %>% filter(censored == "yes") %>% extract2(1),
+     freq=F,
+     main = "Censored fail times",
      xlab = "Fail time")
 
 # Set figure title
@@ -40,12 +54,49 @@ mtext("Figure 2.1: Density of fail times", side=3, outer=TRUE, line=-1)
 
 ```
 
-Both histograms in Figure 2.1 appear approximately exponential. The density for all recorded times is not significantly different from the uncensored fail times, but it should be noted that the censored fail times only make up about $23$ % of the observations.
+All three histograms in Figure 2.1 appear approximately exponential. The density for all recorded times is not significantly different from the uncensored fail times, but it should be noted that the censored fail times only make up about $23$ % of the observations.
 
 ## Question 2.2
-Let us now assume that the fail times are exponentially distributed, and thus the censored fail times will follow a truncated exponential distribution. We introduce an indicator variable $\delta_i$ which takes the value $0$ if observation $x_i$ is censored, and $1$ if it is not. The likelihood of a censored observation $x_i$ is $F(x_i)$. Using this, we can formulate the likelihood function for the data in the following way,
+Let us now assume that the fail times are exponentially distributed with density $f(x) = \lambda e^{-\lambda x}$. \textbf{According to the instructions}, this means that the censored observations must follow a truncated exponential distribution (again, this does not make much sense, especially with respect to Figure 2.1). Under these (blatantly incorrect) assumptions, we can formalise the likelihood of our data below. Let us assume that the truncation has restricted the exponential distribution into the interval $[a, b]$, where $0 \leq a < b$. We introduce an indicator variable $\delta_i$ which takes the value $1$ if observation $x_i$ is censored, and $0$ if it is not. The likelihood of a censored observation $x_i$ is
 
-$$L(\lambda) = \prod_{i=1}^n f(x_i)^{\delta_i} \cdot F(x_i)^{1-\delta_i} = \prod_{i=1}^n \Big ( \lambda \cdot e^{-\lambda x_i} \Big)^{\delta_i} \cdot \Big( 1- e^{-\lambda x_i} \Big) ^{(1-\delta_i)}$$
+$$\frac{g(x_i)}{F(b) - F(a)}$$
+
+where $g(x) = f(x)$ for $a \leq x < b$, and $g(x) = 0$ otherwise. Using this, we can formulate the likelihood function for the data in the following way,
+
+$$L(\lambda) = \prod_{i=1}^n f(x_i)^{(1-\delta_i)} \cdot \Bigg( \frac{f(x_i)}{F(b) - F(a)} \Bigg) ^{\delta_i} = \Big( F(b) - F(a) \Big)^{-n\bar{\delta}} \cdot \prod_{i=1}^n \Big ( \lambda e^{-\lambda x_i} \Big)^{(1-\delta_i)} \cdot \Big( \lambda e^{-\lambda x_i} \Big) ^{\delta_i}$$
+
+where $n\bar{\delta}$ is the number of censored observations in the dataset.
+
+## Question 2.3
+
+## Question 2.4
+
+```{r}
+Likelihood <- function(lambda, data){
+  first_term <- (lambda*exp(-lambda*data$time))^(data$cens == 1)
+  
+  second_term <- (1-exp(-lambda*data$time))^(1 - (data$cens == 1))
+  
+  prod(first_term, second_term)
+}
+
+Q <- function(theta, theta_k){
+  
+}
+
+
+EM_algorithm <- function(lambda_start = 100, epsilon = 0.001){
+  # Setup
+  k <- 0
+  k_max <- 100
+  
+  # Keep iterating until convergence is reached
+  while(k <= k_max & F){
+    
+  }
+}
+```
+
 
 ## Question 2.5
 
