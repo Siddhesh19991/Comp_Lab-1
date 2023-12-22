@@ -1,0 +1,102 @@
+---
+title: "Q2_V2"
+author: "Simon Jorstedt"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r Problem Setup, echo=F, message=F, warning=F}
+# Setup
+
+library(magrittr)
+library(dplyr)
+
+# Read in the data, and create a column with clear indication whether an
+# observation is censored or not. To be clear, cens=2 indicates that an
+# observation *is* censored, and thus "yes".
+df_prodfails <- read.csv("censoredproc.csv", sep = ";") %>%
+  mutate(censored = c("no", "yes")[(cens == 2)+1])
+```
+
+
+
+# Question 2 - EM Algorithm
+A certain type of product fails after random times. We are given a dataset of observations of these fail times. Most observations represent the exact fail time, but for some observations, the time that a product was discovered to have failed is recorded instead. In other words, these observations are censored. Assuming that fail times and time until discovery are independent, this would imply that the uncensored observations can be modeled by some probability distribution $X \sim D$, and the censored observations can be modeled by the distribution of a random variable $X + Y$ where $Y$ is a random variable from the distribution of the time between a product failing and it being discovered. In the instructions, it is stated that the censored measurements are left censored, which makes sense in this context.
+
+## Question 2.1
+```{r, echo=F, fig.align='center', out.width="70%"}
+# Question 2.1
+
+# Create plot grid
+layout(mat=matrix(c(1,2, 3), nrow = 1, byrow = T))
+
+hist(df_prodfails$time,
+     freq = F,
+     main = "All recorded times",
+     xlab = "Fail time")
+
+hist(df_prodfails %>% filter(censored == "no") %>% extract2(1),
+     freq=F,
+     main = "Uncensored fail times",
+     xlab = "Fail time")
+
+hist(df_prodfails %>% filter(censored == "yes") %>% extract2(1),
+     freq=F,
+     main = "Censored fail times",
+     xlab = "Fail time")
+
+# Add exponential density
+lambda_estim <- 1/(df_prodfails %>% filter(censored == "yes") %>% extract2(1) %>% mean())
+x_seq <- seq(0, 10, 0.1)
+points(x_seq, dexp(x_seq, rate=lambda_estim), type="l")
+
+# Set figure title
+mtext("Figure 2.1: Density of fail times", side=3, outer=TRUE, line=-1)
+
+```
+
+All three histograms in Figure 2.1 appear approximately exponential. The density for all recorded times is not significantly different from the uncensored fail times, but it should be noted that the censored fail times only make up about $23$ % of the observations.
+
+## Question 2.2
+We now assume that all uncensored observations $x_i$, $i = 1, \cdots, n$, pairwise independently come from an exponential distribution with rate $\lambda$, and thus density $f(x) = \lambda e^{-\lambda x}$. For the censored observations, we will model the underlying true fail times $z_i$, $i = 1, \cdots, m$, each conditioned on the censored value $y_i$, $i = 1, \cdots, m$, as observations of a truncated exponential distribution:
+
+$$Z | Y=y_i \sim \text{TruncExp}(\lambda, 0, y_i)$$
+
+with density
+
+$$g(z | y) = 
+
+\begin{Bmatrix}
+\frac{\lambda \exp(-\lambda z)}{1-\exp(-\lambda y)} & 0 \leq z \leq y\\
+0 & \text{otherwise}
+\end{Bmatrix}.$$
+
+Thus the Likelihood of our observed data is
+
+$$L(\lambda; X, Z|Y) = \Bigg( \prod_{i=1}^n f(x_i) \Bigg) \cdot \Bigg( \prod_{i=1}^m g(Z_i | y_i) \Bigg).$$
+
+Observe that the Likelihood above is a random variable, since it is a function of the random variables $Z_i|y_i$, $i = 1, \cdots, m$.
+
+# Question 2.3
+Because of our uncertainty in the true fail times $z_i$, we will employ the EM algorithm to estimate the MLE of $\lambda$. In the E step, we will construct the function $Q(\lambda, \lambda^{(t)}) = E_{*}[\log L(\lambda; X, Z|Y)]$, where the $*$ indicates that we take the expectation with respect to $Z | Y=y_i \sim \text{TruncExp}(\lambda^{(t)}, 0, y_i)$. This function is quite intricate, and can in the end be formulated as
+
+$$Q(\lambda, \lambda^{(t)}) = n \cdot \ln \lambda - n + m \ln(\lambda^{(t)}) - \lambda^{(t)} \cdot \sum_ {i=1}^m E[Z|Y=y_i] - \sum_ {i=1}^m \ln \Big( 1-\exp(-\lambda^{(t)} y_i) \Big).$$
+
+For clarity, $n$ and $m$ are the number of \textit{un}censored and censored observations respectively in the data. The first two terms in expression above are the log likelihood contribution from the uncensored data, and the other terms are the log likelihood contribution from the censored data. The remaining expectation in the expression above is found to be
+
+$$E_*[Z |Y=y_i] = \frac{1 -\exp(-\lambda^{(t)}y_i) - y_i \lambda^{(t)} \exp(-\lambda^{(t)} y_i)}{\lambda^{(t)} \Big( 1 - \exp(-\lambda^{(t)} y_i) \Big)}$$
+
+In the M step of the EM algorithm, we simply optimise $Q(\lambda, \lambda^{(t)})$ with respect to $\lambda$, and set $\lambda^{(t+1)} = \text{argmax}_{\lambda} Q(\lambda, \lambda^{(t)})$.
+
+## Question 2.4
+Now we implement the EM-algorithm.
+
+
+
+
+
