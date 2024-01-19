@@ -1,0 +1,53 @@
+---
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+# Solution
+
+Hi! For those struggling with the CompStat Lab 6 Question 2 (the infamous EM Algorithm), I can provide some help. After a lot of struggling and then some helpful advice from Bayu and Héctor, I arrived at the following structure/solution which when implemented did in fact converge, to $\hat{\lambda} \approx 1$. I have a lot to do at the moment, so I am only to a *limited* extent available to answer questions you might have.
+
+Also, please *do not* outright copy this explanation or any of its contents, it is completely possible that I have made mistakes in the equations and formulas, and specifically *I bear no responsibility for any mistakes or issues you may make when implementing this solution, and if you read this then I assume that you respect that*. Please be cautious, because I have in fact derived most of these formulas by myself with pen and paper.
+
+Let *un*-censored observations be noted by $x_i$ for $i = 1, \cdots, n$. Let the censored observations be noted by $y_i$ where $i = 1, \cdots, m$. Let the *true* underlying fail times be noted by $z_i$ where $i = 1, \cdots, m$. In other words: "Mom can I have $z_i$? No we have $z_i$ at home. $z_i$ at home: $y_i$". We now consider the independent random variables $Z_i| Y = y_i$ (in accordance with lab instructions) as coming from Truncated exponential distributions, e.g.
+
+$$Z | Y=y_i \sim \text{TruncExp}(\lambda, 0, y_i)$$
+
+with density
+
+$$g(z | y) = \begin{Bmatrix}
+\frac{\lambda \exp(-\lambda z)}{1-\exp(-\lambda y)} & 0 \leq z \leq y\\
+0 & \text{otherwise}
+\end{Bmatrix}.$$
+
+The Likelihood of our observations comes out to
+
+$$L(\lambda; X, Z|Y) = \Bigg( \prod_{i=1}^n f(x_i) \Bigg) \cdot \Bigg( \prod_{i=1}^m g(Z_i | y_i) \Bigg).$$
+
+Then we can formulate the Q-function in the following way, where the star in the expectations $E_*$ indicate that we take the expectation with respect to the fact that $Z | Y=y_i \sim \text{TruncExp}(\lambda, 0, y_i)$.
+
+$$Q(\lambda, \lambda^{(t)}) = E_{*}[\log L(\lambda; X, Z|Y)] = n \cdot \ln \lambda - \lambda n \bar{x} + m \ln \lambda - \lambda \cdot \sum_ {i=1}^m E_*[Z|Y=y_i] - \sum_ {i=1}^m \ln \Big( 1-\exp(-\lambda y_i) \Big).$$
+
+The expectation in the expression above can formulated in the following way
+
+$$E_*[Z |Y=y_i] = \frac{1 -\exp(-\lambda^{(t)}y_i) - y_i \lambda^{(t)} \exp(-\lambda^{(t)} y_i)}{\lambda^{(t)} \Big( 1 - \exp(-\lambda^{(t)} y_i) \Big)} = \frac{1}{\lambda^{(t)}} - y_i \Big( \exp(\lambda^{(t)} y_i) - 1 \Big)^{-1}$$
+
+Please note the difference between $\lambda$ and $\lambda^{(t)}$. The former is present outside the expectation, and the latter is only present within the expectation of $Z | Y = y_i$.
+
+
+All right, that is it for me, good luck understanding and implementing!
+
+
+
+
+
+$$Q(\lambda, \lambda^{(t)}) = E_* \Big[ \log L(\lambda; X, Z|Y) \Big]= E_* \Big[ \log \Big( \prod_{i=1}^n f(x_i) \Big)  \Big] + E_* \Big[ \log \Big( \prod_ {i=1}^m g(Z_i | y_i) \Big) \Big] = $$
+
+$$ = E \Big[ \log \Big( \prod_{i=1}^n f(x_i) \Big)  \Big] + E_* \Big[ \log \Big( \prod_ {i=1}^m g(Z_i | y_i) \Big) \Big]$$
+
+
+$$Q(\lambda, \lambda^{(t)}) = n \cdot \ln \lambda -n + m \ln \lambda - \lambda \cdot \sum_ {i = 1}^m E_*[Z|Y = y_i] - \sum_ {i = m}^m \ln \Big( 1 - \exp(-\lambda y_i) \Big)$$
+
+
+
+$$Q(\lambda, \lambda^{(t)}) \approx \ln(\lambda^2) - \frac{\lambda}{\lambda^{(t)}} + \frac{\lambda}{e^{\lambda^{(t)}}} - \sum \ln(1-e^{-\lambda})$$

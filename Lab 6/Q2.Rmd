@@ -49,6 +49,11 @@ hist(df_prodfails %>% filter(censored == "yes") %>% extract2(1),
      main = "Censored fail times",
      xlab = "Fail time")
 
+# Add exponential density
+lambda_estim <- 1/(df_prodfails %>% filter(censored == "yes") %>% extract2(1) %>% mean())
+x_seq <- seq(0, 10, 0.1)
+points(x_seq, dexp(x_seq, rate=lambda_estim), type="l")
+
 # Set figure title
 mtext("Figure 2.1: Density of fail times", side=3, outer=TRUE, line=-1)
 
@@ -57,17 +62,21 @@ mtext("Figure 2.1: Density of fail times", side=3, outer=TRUE, line=-1)
 All three histograms in Figure 2.1 appear approximately exponential. The density for all recorded times is not significantly different from the uncensored fail times, but it should be noted that the censored fail times only make up about $23$ % of the observations.
 
 ## Question 2.2
-Let us now assume that the fail times are exponentially distributed with density $f(x) = \lambda e^{-\lambda x}$. \textbf{According to the instructions}, this means that the censored observations must follow a truncated exponential distribution (again, this does not make much sense, especially with respect to Figure 2.1). Under these (blatantly incorrect) assumptions, we can formalise the likelihood of our data below. Let us assume that the truncation has restricted the exponential distribution into the interval $[a, b]$, where $0 \leq a < b$. We introduce an indicator variable $\delta_i$ which takes the value $1$ if observation $x_i$ is censored, and $0$ if it is not. The likelihood of a censored observation $x_i$ is
+Let us now assume that the fail times are exponentially distributed with density $f(x) = \lambda e^{-\lambda x}$. \textbf{According to the instructions}, this means that the censored observations must follow a truncated exponential distribution (again, this does not make much sense, especially with respect to Figure 2.1). Under these (blatantly incorrect) assumptions, we can formalise the likelihood of our data below. Let us assume that the truncation has restricted the exponential distribution into the interval $[a, b]$, where $0 \leq a < b$. We will assume that $a = 0$ and $b \approx 2.56$ based solely on the range of the "censored" data. However, this is revealed to be quite inappropriate once the true density curve of such a truncated exponential distribution is compared to the "censored" observations, but we will not go into depth on that. We introduce an indicator variable $\delta_i$ which takes the value $1$ if observation $x_i$ is censored, and $0$ if it is not. The likelihood of a censored observation $x_i$ is
 
 $$\frac{g(x_i)}{F(b) - F(a)}$$
 
 where $g(x) = f(x)$ for $a \leq x < b$, and $g(x) = 0$ otherwise. Using this, we can formulate the likelihood function for the data in the following way,
 
-$$L(\lambda) = \prod_{i=1}^n f(x_i)^{(1-\delta_i)} \cdot \Bigg( \frac{f(x_i)}{F(b) - F(a)} \Bigg) ^{\delta_i} = \Big( F(b) - F(a) \Big)^{-n\bar{\delta}} \cdot \prod_{i=1}^n \Big ( \lambda e^{-\lambda x_i} \Big)^{(1-\delta_i)} \cdot \Big( \lambda e^{-\lambda x_i} \Big) ^{\delta_i}$$
+$$L(\lambda) = \prod_{i=1}^n f(x_i)^{(1-\delta_i)} \cdot \Bigg( \frac{f(x_i)}{F(b) - F(a)} \Bigg) ^{\delta_i} = \Big( F(b) - F(a) \Big)^{-n\bar{\delta}} \cdot \prod_{i=1}^n \Big ( \lambda e^{-\lambda x_i} \Big)^{(1-\delta_i)} \cdot \Big( \lambda e^{-\lambda x_i} \Big) ^{\delta_i} \propto \lambda^n e^{-\lambda n \overline{x}}$$
 
-where $n\bar{\delta}$ is the number of censored observations in the dataset.
+where $n\bar{\delta}$ is the number of censored observations in the dataset. Interestingly, the maximum likelihood estimate can be analytically determined from this Likelihood function. It comes out to
+
+$$\hat{\lambda}_{MLE} = \frac{1}{\overline{x}} \approx `r round(1/(df_prodfails$time %>% mean()), 2)`$$
+
 
 ## Question 2.3
+Now, despite having already constructed a maximum likelihood estimate using the Likelihood function above, we shall now implement an EM-algorithm that finds the same maximum likelihood estimate.
 
 ## Question 2.4
 
@@ -89,9 +98,13 @@ EM_algorithm <- function(lambda_start = 100, epsilon = 0.001){
   # Setup
   k <- 0
   k_max <- 100
+  lambda = 
   
   # Keep iterating until convergence is reached
   while(k <= k_max & F){
+    # E Step
+    
+    # M Step
     
   }
 }
@@ -103,7 +116,7 @@ EM_algorithm <- function(lambda_start = 100, epsilon = 0.001){
 ```{r, echo=F, fig.align='center', out.width="70%"}
 # Question 2.5
 
-lambda_estim <- 1 # place holder
+lambda_estim <- 1/(df_prodfails %>% filter(censored == "no") %>% extract2(1) %>% mean())
 x_seq <- seq(0, 10, 0.1)
 
 # Create plot grid
@@ -132,4 +145,10 @@ mtext("Figure 2.2: Density of fail times with fitted exponential density",
       side=3, outer=TRUE, line=-1)
 
 ```
+
+
+
+
+
+# TESTING
 

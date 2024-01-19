@@ -5,11 +5,11 @@ date: "`r Sys.Date()`"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
 
+
+
+# Question 2 - EM Algorithm
 ```{r Problem Setup, echo=F, message=F, warning=F}
 # Setup
 
@@ -23,9 +23,6 @@ df_prodfails <- read.csv("censoredproc.csv", sep = ";") %>%
   mutate(censored = c("no", "yes")[(cens == 2)+1])
 ```
 
-
-
-# Question 2 - EM Algorithm
 A certain type of product fails after random times. We are given a dataset of observations of these fail times. Most observations represent the exact fail time, but for some observations, the time that a product was discovered to have failed is recorded instead. In other words, these observations are censored. Assuming that fail times and time until discovery are independent, this would imply that the uncensored observations can be modeled by some probability distribution $X \sim D$, and the censored observations can be modeled by the distribution of a random variable $X + Y$ where $Y$ is a random variable from the distribution of the time between a product failing and it being discovered. In the instructions, it is stated that the censored measurements are left censored, which makes sense in this context.
 
 ## Question 2.1
@@ -96,7 +93,76 @@ In the M step of the EM algorithm, we simply optimise $Q(\lambda, \lambda^{(t)})
 ## Question 2.4
 Now we implement the EM-algorithm.
 
+```{r EM Algorithm Setup}
+# Question 2.4
 
+Expected_Trunc_Exp <- function(rate, b=Inf){
+  # Returns the expected value of an exp distribution truncated on [0, b].
+  
+  numerator <- (-exp(-rate*b) + 1 + -b*rate*exp(-rate*b))
+  denominator <- (rate*(1-exp(-rate*b)))
+  
+  return(numerator / denominator)
+}
+
+Q <- function(lambda, lambda_t){
+  # Function for the expected value of the Likelihood of the data
+  
+  censored_data <- df_prodfails %>% filter(censored == "yes")
+  n <- df_prodfails %>% filter(censored == "no") %>% extract2(1) %>% length()
+  m <- censored_data$time %>% length()
+  
+  # This term represents the log likelihood contribution from the fully
+  # observed data to the expectation
+  term1 <- n * log(lambda) - n
+  
+  # The following terms make up the log likelihood contribution from the
+  # censored observations to the expectation
+  term2 <- m * log(lambda_t)
+  
+  term3 <- - lambda_t * sum(Expected_Trunc_Exp(lambda_t, b=censored_data$time))
+  
+  term4 <- - sum(log(1-exp(-lambda_t * censored_data$time)))
+  
+  return(term1 + term2 + term3 + term4)
+}
+
+
+# The EM Algorithm
+EM_algorithm <- function(lambda_start = 100, epsilon = 0.001){
+  # Setup
+  k <- 0
+  k_max <- 100
+  lambda_t = lambda_start
+  stop <- FALSE
+  
+  # Keep iterating until convergence is reached
+  while(stop != TRUE){
+    k <- k + 1
+    
+    # E Step: Q is already (implicitly) constructed
+    
+    # M Step
+    lambda_new <- optimise(f = Q,
+                           lambda_t = lambda_t,
+                           maximum = T,
+                           interval=c(0, 10^3))$maximum
+    
+    # Evaluate stop conditions
+    stop <- k <= k_max | abs(lambda_t - lambda_new) < epsilon
+    
+    # Accept the new lambda_t (if the algorithm has not been stopped)
+    lambda_t <- lambda_new
+  }
+  
+  cat("Optimal lambda:", lambda_new, "\n")
+  cat("Iterations:", k)
+}
+
+EM_algorithm()
+```
+
+When we implement the EM algorithm above, we run into an interesting error. The estimate of $\lambda$ tends to infinity (bounded by an arbitrary parameter interval we set). This is because our formulation of $Q(\lambda, \lambda^{(t)})$ grows strictly with $\lambda$. This is likely due to some error in our derivation.
 
 
 
